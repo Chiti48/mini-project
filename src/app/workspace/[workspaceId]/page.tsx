@@ -1,21 +1,17 @@
-interface WorkspaceIdPageProps {
-    // 1. เปลี่ยน Type ให้ครอบด้วย Promise
-    params: Promise<{
-        workspaceId: string;
-    }>;
-};
+"use client";
 
-// 2. เติม async
-const WorkspaceIdPage = async ({ params }: WorkspaceIdPageProps) => {
-    // 3. แกะค่าด้วย await
-    const resolvedParams = await params; 
+import { useGetWorkspace } from "@/features/workspaces/api/use-get-workspace";
+import { useWorkspaceId } from "@/hooks/use-workspace-id";
+
+const WorkspaceIdPage = () => {
+    const workspaceId = useWorkspaceId();
+    const { data} = useGetWorkspace({ id: workspaceId });
 
     return (
         <div>
-            {/* 4. เรียกใช้ค่าที่แกะแล้ว */}
-            ID: {resolvedParams.workspaceId}
+            DATA: {JSON.stringify(data)}
         </div>
     );
-}
+};
 
 export default WorkspaceIdPage;
