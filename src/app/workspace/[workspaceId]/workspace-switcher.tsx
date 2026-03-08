@@ -17,6 +17,7 @@ import {
 export const WorkspaceSwitcher = () => {
     const router = useRouter();
     const workspaceId = useWorkspaceId();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_open, setOpen] = useCreateWorkspaceModal();
 
     const { data: workspaces, isLoading: workspacesLoading } = useGetWorkspaces();
@@ -30,7 +31,7 @@ export const WorkspaceSwitcher = () => {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
                 <Button className="size-9 relative overflow-hidden bg-[#ABABAD] hover:bg-[#ABABAD]/80 text-slate-800 font-semibold text-xl">
                     {workspaceLoading ? (
                         <Loader className="size-5 animate-spin shrink-0" />
