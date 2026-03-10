@@ -24,6 +24,7 @@
     "react-icons": "^5.6.0",
     "react-resizable-panels": "^4",
     "react-use": "^17.6.0",
+    "react-verification-input": "^4.2.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0"
   },
