@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog"
@@ -12,8 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateChannel } from "../api/use-create-channel";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export const CreateChannelModal = () => {
+    const router = useRouter();
+
     const workspaceId = useWorkspaceId();
     const [open, setOpen] = useCreateChannelModal();
     const { mutate, isPending } = useCreateChannel();
@@ -35,9 +38,13 @@ export const CreateChannelModal = () => {
             { name, workspaceId },
             {
                 onSuccess: (id) => {
-                    //TODO: Redirect to new channel
+                    toast.success("Channel create");
+                    router.push(`/workspace/${workspaceId}/channel/${id}`);
                     handleClose();
                 },
+                onError: () => {
+                    toast.error("Failed to create channel");
+                }
             },
         );
     };
@@ -48,7 +55,7 @@ export const CreateChannelModal = () => {
                 <DialogHeader>
                     <DialogTitle>Add a channel</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
                         value={name}
                         disabled={isPending}

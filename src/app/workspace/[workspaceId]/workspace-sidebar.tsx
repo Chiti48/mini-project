@@ -9,8 +9,10 @@ import { WorkspaceSection } from "./workspace-section";
 import { useGetMember } from "@/features/members/api/use-get-members";
 import { UserItem } from "./user-item";
 import { useCreateChannelModal } from "@/features/channels/store/use-create-channel-modal";
+import { useChannelId } from "@/hooks/use-channel-id";
 
 export const WorkspaceSidebar = () => {
+    const channelId = useChannelId();
     const workspaceId = useWorkspaceId();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -65,6 +67,7 @@ export const WorkspaceSidebar = () => {
                         icon={HashIcon}
                         label={item.name}
                         id={item._id}
+                        varint={channelId === item._id ? "active" : "default"}
                     />
                 ))}
             </WorkspaceSection>
