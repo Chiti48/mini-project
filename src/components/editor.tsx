@@ -157,7 +157,7 @@ const Editor = ({
                 accept="image/*"
                 ref={imageElementRef}
                 onChange={(event) => setImage(event.target.files![0])}
-                className="hiiden"
+                className="hidden"
                 aria-label="Upload your image"
             />
             <div className={cn(
