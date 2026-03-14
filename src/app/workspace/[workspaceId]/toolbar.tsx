@@ -3,7 +3,7 @@ import { useGetWorkspace } from "@/features/workspaces/api/use-get-workspace";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import { Info, Search } from "lucide-react";
 
-export const Toolber = () => {
+export const Toolbar = () => {
     const workspaceId = useWorkspaceId();
     const { data } = useGetWorkspace({ id: workspaceId });
 

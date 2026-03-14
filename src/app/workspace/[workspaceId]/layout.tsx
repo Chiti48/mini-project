@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"; // 1. นำเข้า useState, useEffect
+import { useState, useEffect } from "react";
 import {
     ResizableHandle,
     ResizablePanel,
@@ -8,14 +8,24 @@ import {
 } from "@/components/ui/resizable"
 
 import { Sidebar } from "./sidebar";
-import { Toolber } from "./toolbar"; // แอบเห็นว่าพิมพ์ Toolber ระวัง Typo นะครับ (อาจจะตั้งใจให้เป็น Toolbar)
+
+import { Toolbar } from "./toolbar";
 import { WorkspaceSidebar } from "./workspace-sidebar";
+import { usePanel } from "@/hooks/use-panel";
+import { Loader } from "lucide-react";
+import { Id } from "../../../../convex/_generated/dataModel";
+import { Thread } from "@/features/messages/components/thread";
+
 
 interface WorkspaceIdLayoutProps {
     children: React.ReactNode;
 };
 
 const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
+    const { parentMessageId, onClose } = usePanel();
+
+    const showPanel = !!parentMessageId;
+
     // 2. สร้าง State สำหรับเช็คว่า Component โหลดฝั่ง Client เสร็จหรือยัง
     const [isMounted, setIsMounted] = useState(false);
 
@@ -34,7 +44,7 @@ const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
 
     return (
         <div className="h-full">
-            <Toolber />
+            <Toolbar />
             <div className="flex h-[calc(100vh-40px)]">
                 <Sidebar />
                 <ResizablePanelGroup
@@ -55,6 +65,23 @@ const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
                     >
                         {children}
                     </ResizablePanel>
+                    {showPanel && (
+                        <>
+                            <ResizableHandle withHandle />
+                            <ResizablePanel minSize="20%" defaultSize="29%">
+                                {parentMessageId ? (
+                                  <Thread
+                                    messageId={parentMessageId as Id<"messages">}
+                                    onClose={onClose}
+                                  />
+                                ) : (
+                                    <div className="flex h-full items-center justify-center">
+                                        <Loader className="size-5 animate-spin text-muted-foreground" />
+                                    </div>
+                                )}
+                            </ResizablePanel>
+                        </>
+                    )}
                 </ResizablePanelGroup>
             </div>
         </div >
