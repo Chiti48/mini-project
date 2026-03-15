@@ -26,7 +26,7 @@ export const Header = ({
                 <Avatar className="size-6 mr-2">
                     <AvatarImage src={memberImage} />
                     <AvatarFallback>
-                        {avatarFallback}
+                        
                     </AvatarFallback>
                 </Avatar>
                 <span className="truncate">{memberName}</span>

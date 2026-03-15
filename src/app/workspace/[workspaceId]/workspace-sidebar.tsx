@@ -6,7 +6,7 @@ import { WorkspaceHeader } from "./workspace-header";
 import { SidebarItem } from "./sidebar-item";
 import { useGetChannels } from "@/features/channels/api/use-get-channels";
 import { WorkspaceSection } from "./workspace-section";
-import { useGetMember } from "@/features/members/api/use-get-members";
+import { useGetMembers } from "@/features/members/api/use-get-members";
 import { UserItem } from "./user-item";
 import { useCreateChannelModal } from "@/features/channels/store/use-create-channel-modal";
 import { useChannelId } from "@/hooks/use-channel-id";
@@ -24,7 +24,7 @@ export const WorkspaceSidebar = () => {
     const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
     const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
     const { data: channels, isLoading: channelsLoading } = useGetChannels({ workspaceId });
-    const { data: members, isLoading: membersLoading } = useGetMember({ workspaceId });
+    const { data: members, isLoading: membersLoading } = useGetMembers({ workspaceId });
     // show spinner until workspace, current member or channel list is ready
     if (workspaceLoading || memberLoading || channelsLoading) {
         return (
