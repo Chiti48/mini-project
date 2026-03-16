@@ -11,7 +11,7 @@ export const AuthScreen = () => {
     const [state, setState] = useState<SignInFlow>("signIn");
 
     return (
-        <div className="h-full flex flex-col items-center justify-center bg-linear-to-br from-[oklch(68%_0.13_165.612)] to-[oklch(32%_0.1_165.612)] p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-[oklch(68%_0.13_165.612)] to-[oklch(32%_0.1_165.612)] p-4 py-10">
             
             <div className="mb-6 flex flex-col items-center">
                 <div className="bg-[oklch(35.5%_0.07_142)] p-4 rounded-full shadow-lg mb-3 border border-white/20">
