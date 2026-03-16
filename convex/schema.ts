@@ -56,7 +56,55 @@ const schema = defineSchema({
     })
         .index("by_workspace_id", ["workspaceId"])
         .index("by_message_id", ["messageId"])
-        .index("by_member_id", ["memberId"])
+        .index("by_member_id", ["memberId"]),
+    // Task Board Tables
+    taskBoards: defineTable({
+        workspaceId: v.id("workspaces"),
+        name: v.string(),
+        description: v.optional(v.string()),
+    })
+        .index("by_workspace_id", ["workspaceId"]),
+    taskLists: defineTable({
+        boardId: v.id("taskBoards"),
+        name: v.string(),
+        order: v.number(), // For ordering lists on the board
+    })
+        .index("by_board_id", ["boardId"]),
+    taskCards: defineTable({
+        listId: v.id("taskLists"),
+        title: v.string(),
+        description: v.optional(v.string()),
+        assigneeId: v.optional(v.id("members")),
+        dueDate: v.optional(v.number()), // Timestamp
+        labels: v.optional(v.array(v.string())),
+        attachments: v.optional(v.array(v.id("_storage"))),
+        order: v.number(), // For ordering cards within a list
+        createdBy: v.id("members"),
+        workspaceId: v.id("workspaces"),
+    })
+        .index("by_list_id", ["listId"])
+        .index("by_workspace_id", ["workspaceId"])
+        .index("by_assignee_id", ["assigneeId"]),
+    taskComments: defineTable({
+        taskId: v.id("taskCards"),
+        memberId: v.id("members"),
+        content: v.string(),
+        workspaceId: v.id("workspaces"),
+    })
+        .index("by_task_id", ["taskId"])
+        .index("by_workspace_id", ["workspaceId"]),
+    taskActivityLogs: defineTable({
+        taskId: v.id("taskCards"),
+        memberId: v.id("members"),
+        action: v.string(), // e.g., "created", "moved", "updated", "commented"
+        details: v.optional(v.string()),
+        fromListId: v.optional(v.id("taskLists")),
+        toListId: v.optional(v.id("taskLists")),
+        workspaceId: v.id("workspaces"),
+    })
+        .index("by_task_id", ["taskId"])
+        .index("by_workspace_id", ["workspaceId"])
+        .index("by_member_id", ["memberId"]),
 });
 
 export default schema;

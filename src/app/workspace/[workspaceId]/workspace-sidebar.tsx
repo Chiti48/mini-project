@@ -1,7 +1,7 @@
 import { useCurrentMember } from "@/features/members/api/use-current-member";
 import { useGetWorkspace } from "@/features/workspaces/api/use-get-workspace";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
-import { AlertTriangle, HashIcon, Loader, MessageSquareText, SendHorizonal } from "lucide-react";
+import { AlertTriangle, HashIcon, Layout, Loader, MessageSquareText, SendHorizonal } from "lucide-react";
 import { WorkspaceHeader } from "./workspace-header";
 import { SidebarItem } from "./sidebar-item";
 import { useGetChannels } from "@/features/channels/api/use-get-channels";
@@ -24,7 +24,7 @@ export const WorkspaceSidebar = () => {
     const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
     const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
     const { data: channels, isLoading: channelsLoading } = useGetChannels({ workspaceId });
-    const { data: members, isLoading: membersLoading } = useGetMembers({ workspaceId });
+    const { data: members } = useGetMembers({ workspaceId });
     // show spinner until workspace, current member or channel list is ready
     if (workspaceLoading || memberLoading || channelsLoading) {
         return (
@@ -56,6 +56,11 @@ export const WorkspaceSidebar = () => {
                     label="Drafts & Sent"
                     icon={SendHorizonal}
                     id="drafts"
+                />
+                <SidebarItem
+                    label="Task Boards"
+                    icon={Layout}
+                    id="tasks"
                 />
             </div>
             <WorkspaceSection
