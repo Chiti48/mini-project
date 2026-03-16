@@ -85,7 +85,7 @@ export const Header = ({ title }: HeaderProps) => {
     }
 
     return (
-        <div className="bg-white border-b h-12.25 flex items-center px-4 overflow-hidden">
+        <div className="bg-[#92ac93] border-b h-12.25 flex items-center px-4 overflow-hidden">
             <ConfirmDialog />
             <Dialog>
                 <DialogTrigger asChild>

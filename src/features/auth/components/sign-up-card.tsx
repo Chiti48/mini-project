@@ -55,7 +55,7 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
                     Sign up to continue
                 </CardTitle>
                 <CardDescription>
-                    Use your eamil or username to login to your account
+                    Use your email or username to login to your account
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 px-0 pb-0">
@@ -69,7 +69,10 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
                     <Input
                         disabled={pending}
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                            setName(e.target.value);
+                            setError("");
+                        }}
                         placeholder="Full name"
                         required
                     />
@@ -119,7 +122,7 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
                         size="lg"
                         className="w-full relative"
                     >
-                        <FcGoogle className="size-5 absolute top-3 left-2.5" />
+                        <FcGoogle className="size-5 absolute top-1/2 left-2.5 -translate-y-1/2" />
                         Continue with Google
                     </Button>
                     <Button
@@ -129,8 +132,8 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
                         size="lg"
                         className="w-full relative"
                     >
-                        <FaGithub className="size-5 absolute top-3 left-2.5" />
-                        Continue with Github
+                        <FaGithub className="size-5 absolute top-1/2 left-2.5 -translate-y-1/2" />
+                        Continue with GitHub
                     </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -139,4 +142,4 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
             </CardContent>
         </Card>
     );
-};  
+};

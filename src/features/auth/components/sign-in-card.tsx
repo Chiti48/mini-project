@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useState } from "react"; // ลบ 'use' ออกแล้ว
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { TriangleAlert } from "lucide-react";
@@ -63,7 +63,10 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                     <Input
                         disabled={pending}
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                            setEmail(e.target.value);
+                            setError(""); 
+                        }}
                         placeholder="Email"
                         type="email"
                         required
@@ -71,7 +74,10 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                     <Input
                         disabled={pending}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            setError(""); 
+                        }}
                         placeholder="Password"
                         type="password"
                         required
@@ -89,7 +95,7 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                         size="lg"
                         className="w-full relative"
                     >
-                        <FcGoogle className="size-5 absolute top-3 left-2.5" />
+                        <FcGoogle className="size-5 absolute top-1/2 left-2.5 -translate-y-1/2" />
                         Continue with Google
                     </Button>
                     <Button
@@ -99,8 +105,8 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                         size="lg"
                         className="w-full relative"
                     >
-                        <FaGithub className="size-5 absolute top-3 left-2.5" />
-                        Continue with Github
+                        <FaGithub className="size-5 absolute top-1/2 left-2.5 -translate-y-1/2" />
+                        Continue with GitHub
                     </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -109,4 +115,4 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
             </CardContent>
         </Card>
     );
-};  
+};
