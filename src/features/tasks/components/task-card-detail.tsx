@@ -228,7 +228,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                     <div key={comment._id} className="flex gap-3">
                                         <Avatar className="h-8 w-8">
                                             <AvatarImage src={comment.user?.image} />
-                                            <AvatarFallback>
+                                            <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs">
                                                 {comment.user?.name?.charAt(0)}
                                             </AvatarFallback>
                                         </Avatar>
@@ -253,7 +253,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                 <div key={log._id} className="flex gap-3">
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={log.user?.image} />
-                                        <AvatarFallback>
+                                        <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs">
                                             {log.user?.name?.charAt(0)}
                                         </AvatarFallback>
                                     </Avatar>
