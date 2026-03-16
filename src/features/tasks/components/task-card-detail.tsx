@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { X, Calendar, User, Paperclip, Tag, MessageSquare, Activity } from "lucide-react";
+import { X, Calendar, User, Paperclip, Tag, MessageSquare, Activity, Copy, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useGetTaskCardById } from "../api/use-get-cards";
 import { useGetTaskComments } from "../api/use-get-comments";
 import { useGetTaskActivityLogs } from "../api/use-get-activity-logs";
 import { useCreateTaskComment } from "../api/use-create-comment";
 import { useUpdateTaskCard } from "../api/use-update-card";
+import { useRemoveTaskCard } from "../api/use-remove-card";
+import { useCopyTaskCard } from "../api/use-copy-card";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +30,8 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     const activityLogs = useGetTaskActivityLogs(cardId);
     const { mutate: createComment, isPending: isCreatingComment } = useCreateTaskComment();
     const { mutate: updateCard } = useUpdateTaskCard();
+    const { mutate: removeCard } = useRemoveTaskCard();
+    const { mutate: copyCard } = useCopyTaskCard();
 
     const [newComment, setNewComment] = useState("");
     const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -52,6 +57,34 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
         setIsEditingDescription(false);
     };
 
+    const handleCopyCard = async () => {
+        if (!card) return;
+        await copyCard({
+            cardId,
+            listId: card.listId,
+        }, {
+            onSuccess: () => {
+                toast.success("Card copied successfully");
+                onClose();
+            },
+            onError: () => {
+                toast.error("Failed to copy card");
+            },
+        });
+    };
+
+    const handleDeleteCard = async () => {
+        await removeCard({ cardId }, {
+            onSuccess: () => {
+                toast.success("Card deleted successfully");
+                onClose();
+            },
+            onError: () => {
+                toast.error("Failed to delete card");
+            },
+        });
+    };
+
     if (!card) return null;
 
     return (
@@ -64,14 +97,11 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                         in list <span className="font-medium">{card.list?.name}</span>
                     </p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                    <X className="h-4 w-4" />
-                </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Main Content */}
-                <div className="col-span-2 space-y-6">
+                <div className="md:col-span-2 space-y-6">
                     {/* Meta Info */}
                     <div className="flex flex-wrap gap-4">
                         {card.assignee && (
@@ -268,6 +298,31 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                             <Button variant="outline" className="w-full justify-start" size="sm">
                                 <Paperclip className="h-4 w-4 mr-2" />
                                 Attachment
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div>
+                        <h4 className="text-sm font-medium mb-2">Actions</h4>
+                        <div className="space-y-2">
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start" 
+                                size="sm"
+                                onClick={handleCopyCard}
+                            >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
+                                size="sm"
+                                onClick={handleDeleteCard}
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
                             </Button>
                         </div>
                     </div>

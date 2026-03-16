@@ -1,26 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, MoreHorizontal, Calendar, Paperclip, Tag } from "lucide-react";
+import { Plus, Calendar, Paperclip, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { Draggable, Droppable, DraggableProvided, DraggableStateSnapshot, DroppableProvided, DroppableStateSnapshot } from "@hello-pangea/dnd";
 import Image from "next/image";
 import { useGetTaskCards } from "../api/use-get-cards";
 import { useCreateTaskCard } from "../api/use-create-card";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
     Dialog,
     DialogContent,
+    DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { TaskCardDetail } from "./task-card-detail";
 
 interface TaskListProps {
     listId: Id<"taskLists">;
-    name: string;
 }
 
 interface TaskCardItemProps {
@@ -53,8 +54,8 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
                         onClick={() => setIsDetailOpen(true)}
                     >
                         <Card
-                            className={`mb-2 cursor-pointer hover:shadow-md transition-shadow ${
-                                snapshot.isDragging ? "shadow-lg rotate-2" : ""
+                            className={`mb-2 cursor-pointer hover:shadow-lg transition-all border-0 shadow-sm ${
+                                snapshot.isDragging ? "shadow-xl rotate-2 ring-2 ring-[#337f37]" : ""
                             }`}
                         >
                             <CardContent className="p-3">
@@ -108,10 +109,10 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
                                                     alt={card.assignee.name || ""}
                                                     width={24}
                                                     height={24}
-                                                    className="rounded-full"
+                                                    className="rounded-full ring-2 ring-white"
                                                 />
                                             ) : (
-                                                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
+                                                <div className="w-6 h-6 rounded-full bg-[#337f37] text-white flex items-center justify-center text-xs font-medium">
                                                     {card.assignee.name?.charAt(0) || "?"}
                                                 </div>
                                             )}
@@ -125,7 +126,8 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
             </Draggable>
 
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogTitle className="sr-only">Card Details</DialogTitle>
                     <TaskCardDetail
                         cardId={card._id}
                         onClose={() => setIsDetailOpen(false)}
@@ -136,7 +138,7 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
     );
 };
 
-export const TaskList = ({ listId, name }: TaskListProps) => {
+export const TaskList = ({ listId }: TaskListProps) => {
     const [isAddingCard, setIsAddingCard] = useState(false);
     const [newCardTitle, setNewCardTitle] = useState("");
 
@@ -152,84 +154,81 @@ export const TaskList = ({ listId, name }: TaskListProps) => {
             title: newCardTitle,
         }, {
             onSuccess: () => {
+                toast.success("Card created successfully");
                 setNewCardTitle("");
                 setIsAddingCard(false);
+            },
+            onError: () => {
+                toast.error("Failed to create card");
             },
         });
     };
 
     return (
-        <div className="w-72 shrink-0">
-            <Card className="bg-muted/50">
-                <CardHeader className="p-3 pb-2 flex flex-row items-center justify-between">
-                    <h3 className="font-semibold text-sm">{name}</h3>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </CardHeader>
-
-                <CardContent className="p-3 pt-0">
-                    <Droppable droppableId={listId}>
-                        {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-                            <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className={`min-h-[100px] ${
-                                    snapshot.isDraggingOver ? "bg-muted rounded-lg" : ""
-                                }`}
-                            >
-                                {cards?.map((card, cardIndex) => (
-                                    <TaskCardItem
-                                        key={card._id}
-                                        card={card}
-                                        index={cardIndex}
-                                    />
-                                ))}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-
-                    {/* Add Card Form */}
-                    {isAddingCard ? (
-                        <form onSubmit={handleCreateCard} className="mt-2">
-                            <Input
-                                placeholder="Enter card title..."
-                                value={newCardTitle}
-                                onChange={(e) => setNewCardTitle(e.target.value)}
-                                className="mb-2"
-                                autoFocus
+        <div className="flex flex-col">
+            <Droppable droppableId={listId}>
+                {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+                    <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`flex-1 min-h-[100px] ${
+                            snapshot.isDraggingOver ? "bg-white/40 rounded-lg" : ""
+                        }`}
+                    >
+                        {cards?.map((card, cardIndex) => (
+                            <TaskCardItem
+                                key={card._id}
+                                card={card}
+                                index={cardIndex}
                             />
-                            <div className="flex gap-2">
-                                <Button
-                                    type="submit"
-                                    size="sm"
-                                    disabled={isPending}
-                                >
-                                    Add Card
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsAddingCard(false)}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
-                        </form>
-                    ) : (
-                        <Button
-                            variant="ghost"
-                            className="w-full justify-start mt-2"
-                            onClick={() => setIsAddingCard(true)}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add a card
-                        </Button>
-                    )}
-                </CardContent>
-            </Card>
+                        ))}
+                        {provided.placeholder}
+                    </div>
+                )}
+            </Droppable>
+
+            {/* Add Card Form */}
+            <div className="p-2 pt-0">
+                {isAddingCard ? (
+                    <form onSubmit={handleCreateCard}>
+                        <Input
+                            placeholder="Enter card title..."
+                            value={newCardTitle}
+                            onChange={(e) => setNewCardTitle(e.target.value)}
+                            className="mb-2 bg-white text-sm"
+                            autoFocus
+                        />
+                        <div className="flex gap-2">
+                            <Button
+                                type="submit"
+                                size="sm"
+                                disabled={isPending}
+                                className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs"
+                            >
+                                Add Card
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsAddingCard(false)}
+                                className="h-8 text-xs"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                ) : (
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-white/50 h-8 text-xs"
+                        onClick={() => setIsAddingCard(true)}
+                    >
+                        <Plus className="h-3 w-3 mr-2" />
+                        Add a card
+                    </Button>
+                )}
+            </div>
         </div>
     );
 };

@@ -11,6 +11,7 @@ import { UserItem } from "./user-item";
 import { useCreateChannelModal } from "@/features/channels/store/use-create-channel-modal";
 import { useChannelId } from "@/hooks/use-channel-id";
 import { useMemberId } from "@/hooks/use-member-id";
+import { TaskBoardsLink } from "./task-boards-link";
 
 export const WorkspaceSidebar = () => {
     const memberId = useMemberId();
@@ -57,11 +58,7 @@ export const WorkspaceSidebar = () => {
                     icon={SendHorizonal}
                     id="drafts"
                 />
-                <SidebarItem
-                    label="Task Boards"
-                    icon={Layout}
-                    id="tasks"
-                />
+                <TaskBoardsLink label="Task Boards" icon={Layout} />
             </div>
             <WorkspaceSection
                 label="Channels"

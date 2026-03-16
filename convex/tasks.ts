@@ -547,6 +547,62 @@ export const removeCard = mutation({
     },
 });
 
+export const copyCard = mutation({
+    args: {
+        cardId: v.id("taskCards"),
+        listId: v.id("taskLists"),
+        title: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Unauthorized");
+
+        const card = await ctx.db.get(args.cardId);
+        if (!card) throw new Error("Card not found");
+
+        const member = await getMember(ctx, card.workspaceId, userId);
+        if (!member) throw new Error("Not a member of this workspace");
+
+        const list = await ctx.db.get(args.listId);
+        if (!list) throw new Error("List not found");
+
+        // Get current max order in the list
+        const existingCards = await ctx.db
+            .query("taskCards")
+            .withIndex("by_list_id", (q) => q.eq("listId", args.listId))
+            .collect();
+        
+        const maxOrder = existingCards.length > 0
+            ? Math.max(...existingCards.map(c => c.order))
+            : -1;
+
+        // Create the copied card
+        const newCardId = await ctx.db.insert("taskCards", {
+            workspaceId: card.workspaceId,
+            listId: args.listId,
+            title: args.title || `${card.title} (Copy)`,
+            description: card.description,
+            order: maxOrder + 1,
+            assigneeId: card.assigneeId,
+            dueDate: card.dueDate,
+            labels: card.labels,
+            attachments: card.attachments,
+            createdBy: member._id,
+        });
+
+        // Log activity
+        await logActivity(ctx, {
+            taskId: newCardId,
+            memberId: member._id,
+            action: "copied",
+            details: `Copied from "${card.title}"`,
+            workspaceId: card.workspaceId,
+        });
+
+        return newCardId;
+    },
+});
+
 // ========== TASK COMMENTS ==========
 
 export const createComment = mutation({
