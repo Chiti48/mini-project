@@ -152,7 +152,7 @@ export const Profile = ({ memberId, onClose }: ProfileProps) => {
             <LeaveDialog />
             <RemoveDialog />
             <div className="h-full flex flex-col">
-                <div className="flex justify-between items-center h-12.25 px-4 border-b">
+                <div className="bg-[#92ac93] flex justify-between items-center h-12.25 px-4 border-b">
                     <p className="text-lg font-bold">Profile</p>
                     <Button onClick={onClose} variant="ghost" size="iconSm">
                         <XIcon className="size-5 stroke-[1.5]" />
