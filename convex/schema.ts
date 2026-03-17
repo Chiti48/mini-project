@@ -57,6 +57,17 @@ const schema = defineSchema({
         .index("by_workspace_id", ["workspaceId"])
         .index("by_message_id", ["messageId"])
         .index("by_member_id", ["memberId"]),
+    readReceipts: defineTable({
+        workspaceId: v.id("workspaces"),
+        memberId: v.id("members"),
+        channelId: v.optional(v.id("channels")),
+        conversationId: v.optional(v.id("conversations")),
+        lastReadAt: v.number(),
+    })
+        .index("by_member_id_channel_id", ["memberId", "channelId"])
+        .index("by_member_id_conversation_id", ["memberId", "conversationId"])
+        .index("by_workspace_member", ["workspaceId", "memberId"]) // สำหรับนับยอดรวม
+        .index("by_member_id", ["memberId"]),
     // Task Board Tables
     taskBoards: defineTable({
         workspaceId: v.id("workspaces"),

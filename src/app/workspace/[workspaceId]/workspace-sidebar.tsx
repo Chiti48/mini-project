@@ -1,7 +1,7 @@
 import { useCurrentMember } from "@/features/members/api/use-current-member";
 import { useGetWorkspace } from "@/features/workspaces/api/use-get-workspace";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
-import { AlertTriangle, HashIcon, Layout, Loader, MessageSquareText, SendHorizonal } from "lucide-react";
+import { AlertTriangle, Layout, Loader, MessageSquareText, SendHorizonal } from "lucide-react";
 import { WorkspaceHeader } from "./workspace-header";
 import { SidebarItem } from "./sidebar-item";
 import { useGetChannels } from "@/features/channels/api/use-get-channels";
@@ -12,21 +12,21 @@ import { useCreateChannelModal } from "@/features/channels/store/use-create-chan
 import { useChannelId } from "@/hooks/use-channel-id";
 import { useMemberId } from "@/hooks/use-member-id";
 import { TaskBoardsLink } from "./task-boards-link";
+import { useRouter } from "next/navigation";
+import { ChannelItem } from "./channel-item";
 
 export const WorkspaceSidebar = () => {
-    const memberId = useMemberId();
-    const channelId = useChannelId();
+    const router = useRouter();
     const workspaceId = useWorkspaceId();
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_open, setOpen] = useCreateChannelModal();
-
+    const channelId = useChannelId();
+    const memberId = useMemberId();
+    const [, setOpen] = useCreateChannelModal();
 
     const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
     const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
     const { data: channels, isLoading: channelsLoading } = useGetChannels({ workspaceId });
     const { data: members } = useGetMembers({ workspaceId });
-    // show spinner until workspace, current member or channel list is ready
+
     if (workspaceLoading || memberLoading || channelsLoading) {
         return (
             <div className="flex flex-col bg-[#337f37] h-full items-center justify-center">
@@ -34,47 +34,44 @@ export const WorkspaceSidebar = () => {
             </div>
         );
     }
+
     if (!workspace || !member) {
         return (
             <div className="flex flex-col gap-y-2 bg-[#337f37] h-full items-center justify-center">
                 <AlertTriangle className="size-5 animate-bounce text-white" />
-                <p className="text-white text-sm">
-                    Workspace not found
-                </p>
+                <p className="text-white text-sm">Workspace not found</p>
             </div>
         );
     }
+
     return (
-        <div className="flex flex-col bg-[#337f37] h-full">
+        <div className="flex flex-col bg-[#337f37] h-full"> {/* ใช้สีเขียวตามธีม */}
             <WorkspaceHeader workspace={workspace} isAdmin={member.role === "admin"} />
-            <div className="flex flex-col px-2 mt-3">
-                <SidebarItem
-                    label="Threads"
-                    icon={MessageSquareText}
-                    id="threads"
-                />
-                <SidebarItem
-                    label="Drafts & Sent"
-                    icon={SendHorizonal}
-                    id="drafts"
-                />
+
+            <div className="flex flex-col px-2 mt-3 gap-y-1">
+                <SidebarItem label="Threads" icon={MessageSquareText} id="threads" />
+                <SidebarItem label="Drafts & Sent" icon={SendHorizonal} id="drafts" />
                 <TaskBoardsLink label="Task Boards" icon={Layout} />
             </div>
+
             <WorkspaceSection
                 label="Channels"
                 hint="New channel"
                 onNew={member.role === "admin" ? () => setOpen(true) : undefined}
             >
                 {channels?.map((item) => (
-                    <SidebarItem
+                    <ChannelItem
                         key={item._id}
-                        icon={HashIcon}
                         label={item.name}
-                        id={item._id}
-                        varint={channelId === item._id ? "active" : "default"}
+                        channelId={item._id}
+                        isActive={channelId === item._id}
+                        onClick={() => {
+                            router.push(`/workspace/${workspaceId}/channel/${item._id}`);
+                        }}
                     />
                 ))}
             </WorkspaceSection>
+
             <WorkspaceSection
                 label="Direct Message"
                 hint="New direct message"
@@ -87,6 +84,9 @@ export const WorkspaceSidebar = () => {
                         label={item.user.name}
                         image={item.user.image}
                         variant={item._id === memberId ? "active" : "default"}
+                        onClick={() => {
+                            router.push(`/workspace/${workspaceId}/member/${item._id}`);
+                        }}
                     />
                 ))}
             </WorkspaceSection>
