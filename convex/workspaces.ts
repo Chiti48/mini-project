@@ -235,6 +235,7 @@ export const remove = mutation({
         if (!userId) {
             throw new Error("Unauthorized");
         }
+        
         const member = await ctx.db
             .query("members")
             .withIndex("by_workspace_id_user_id", (q) =>
@@ -246,49 +247,62 @@ export const remove = mutation({
             throw new Error("Unauthorized");
         }
 
-        const [members, channels, conversations, messages, reactions] = await Promise.all([
-            ctx.db
-                .query("members")
-                .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id))
-                .collect(),
-            ctx.db
-                .query("channels")
-                .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id))
-                .collect(),
-            ctx.db
-                .query("conversations")
-                .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id))
-                .collect(),
-            ctx.db
-                .query("messages")
-                .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id))
-                .collect(),
-            ctx.db
-                .query("reactions")
-                .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id))
-                .collect(),
+        // 1. ดึงข้อมูลตารางหลักที่เชื่อมกับ workspaceId โดยตรงผ่าน Promise.all
+        const [
+            members, 
+            channels, 
+            conversations, 
+            messages, 
+            reactions,
+            taskBoards,      // จาก Schema ของคุณ
+            taskCards,       // จาก Schema ของคุณ
+            taskComments,    // จาก Schema ของคุณ
+            taskActivityLogs // จาก Schema ของคุณ (แก้ชื่อจาก activityLogs)
+        ] = await Promise.all([
+            ctx.db.query("members").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("channels").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("conversations").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("messages").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("reactions").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            
+            // Task Board Tables ที่มี workspaceId
+            ctx.db.query("taskBoards").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("taskCards").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("taskComments").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+            ctx.db.query("taskActivityLogs").withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
         ]);
 
-        for (const member of members) {
-            await ctx.db.delete(member._id)
+        // 2. ลบข้อมูลจากตารางหลักและ Messages
+        for (const m of members) await ctx.db.delete(m._id);
+        for (const c of channels) await ctx.db.delete(c._id);
+        for (const conv of conversations) await ctx.db.delete(conv._id);
+        for (const msg of messages) await ctx.db.delete(msg._id);
+        for (const r of reactions) await ctx.db.delete(r._id);
+
+        // 3. จัดการลบข้อมูลระบบ Task Board
+        
+        // ลบ Cards, Comments, Activity Logs (เพราะมี workspaceId ดึงมาแล้ว)
+        for (const card of taskCards) await ctx.db.delete(card._id);
+        for (const comment of taskComments) await ctx.db.delete(comment._id);
+        for (const log of taskActivityLogs) await ctx.db.delete(log._id);
+
+        // จัดการลบ taskLists (เพราะไม่มี workspaceId ต้องหาผ่าน boardId)
+        for (const board of taskBoards) {
+            // ดึง list ทั้งหมดที่อยู่ในบอร์ดนี้ แล้วลบทิ้ง
+            const listsInBoard = await ctx.db
+                .query("taskLists")
+                .withIndex("by_board_id", (q) => q.eq("boardId", board._id))
+                .collect();
+                
+            for (const list of listsInBoard) {
+                await ctx.db.delete(list._id);
+            }
+            
+            // ลบบอร์ดทิ้งหลังสุด
+            await ctx.db.delete(board._id);
         }
 
-        for (const channel of channels) {
-            await ctx.db.delete(channel._id);
-        }
-
-        for (const conversation of conversations) {
-            await ctx.db.delete(conversation._id);
-        }
-
-        for (const message of messages) {
-            await ctx.db.delete(message._id);
-        }
-
-        for (const reaction of reactions) {
-            await ctx.db.delete(reaction._id);
-        }
-
+        // 4. ลบ Workspace เป็นลำดับสุดท้าย
         await ctx.db.delete(args.id);
 
         return args.id;

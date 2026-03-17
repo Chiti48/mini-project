@@ -45,7 +45,7 @@ const TasksPage = () => {
     
     const [DeleteDialog, confirmDelete] = useConfirm(
         "Delete Board",
-        "Are you sure you want to delete this board? This action cannot be undone and will delete all tasks, lists, and data within this board.",
+        "Delete this board? All tasks and lists will be permanently deleted.",
     );
     
     const [selectedBoardId, setSelectedBoardId] = useState<Id<"taskBoards"> | undefined>(undefined);
