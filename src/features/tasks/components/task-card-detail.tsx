@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Calendar, User, Paperclip, Tag, MessageSquare, Activity, Copy, Trash2 } from "lucide-react";
+import { Calendar, User, Paperclip, Tag, MessageSquare, Activity, Copy, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useGetTaskCardById } from "../api/use-get-cards";
 import { useGetTaskComments } from "../api/use-get-comments";
@@ -153,7 +153,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                     rows={4}
                                 />
                                 <div className="flex gap-2">
-                                    <Button size="sm" onClick={handleUpdateDescription}>
+                                    <Button size="sm" onClick={handleUpdateDescription} disabled={!description.trim()} className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs">
                                         Save
                                     </Button>
                                     <Button
@@ -217,7 +217,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
                                 />
-                                <Button type="submit" disabled={isCreatingComment}>
+                                <Button type="submit" disabled={isCreatingComment || !newComment.trim()} className="bg-[#337f37] hover:bg-[#2a6b2e] text-xs align-middle">
                                     Post
                                 </Button>
                             </form>

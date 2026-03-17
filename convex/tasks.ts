@@ -723,6 +723,108 @@ export const removeComment = mutation({
     },
 });
 
+// ========== BOARDS ==========
+
+export const removeBoard = mutation({
+    args: {
+        boardId: v.id("taskBoards"),
+    },
+    handler: async (ctx, args) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Unauthorized");
+
+        const board = await ctx.db.get(args.boardId);
+        if (!board) throw new Error("Board not found");
+
+        const member = await getMember(ctx, board.workspaceId, userId);
+        if (!member) throw new Error("Not a member of this workspace");
+
+        // Check if user is admin (only admins can delete boards)
+        if (member.role !== "admin") {
+            throw new Error("Only admins can delete boards");
+        }
+
+        // Get all lists in this board
+        const lists = await ctx.db
+            .query("taskLists")
+            .withIndex("by_board_id", (q) => q.eq("boardId", args.boardId))
+            .collect();
+
+        // Delete all cards in all lists
+        for (const list of lists) {
+            const cards = await ctx.db
+                .query("taskCards")
+                .withIndex("by_list_id", (q) => q.eq("listId", list._id))
+                .collect();
+
+            for (const card of cards) {
+                // Delete comments
+                const comments = await ctx.db
+                    .query("taskComments")
+                    .withIndex("by_task_id", (q) => q.eq("taskId", card._id))
+                    .collect();
+
+                for (const comment of comments) {
+                    await ctx.db.delete(comment._id);
+                }
+
+                // Delete activity logs
+                const logs = await ctx.db
+                    .query("taskActivityLogs")
+                    .withIndex("by_task_id", (q) => q.eq("taskId", card._id))
+                    .collect();
+
+                for (const log of logs) {
+                    await ctx.db.delete(log._id);
+                }
+
+                // Delete card
+                await ctx.db.delete(card._id);
+            }
+
+            // Delete list
+            await ctx.db.delete(list._id);
+        }
+
+        // Delete board
+        await ctx.db.delete(args.boardId);
+
+        return args.boardId;
+    },
+});
+
+export const updateBoard = mutation({
+    args: {
+        boardId: v.id("taskBoards"),
+        name: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Unauthorized");
+
+        // เพิ่มเช็คความยาวตรงนี้
+        const trimmedName = args.name.trim();
+        if (!trimmedName) {
+            throw new Error("Board name cannot be empty");
+        }
+
+        const board = await ctx.db.get(args.boardId);
+        if (!board) throw new Error("Board not found");
+
+        const member = await getMember(ctx, board.workspaceId, userId);
+        if (!member || member.role !== "admin") {
+            throw new Error("Only admins can update boards");
+        }
+
+        // Update board name
+        await ctx.db.patch(args.boardId, {
+            name: trimmedName, // ใช้ตัวแปรที่ trim แล้ว
+        });
+
+        return args.boardId;
+    },
+});
+
 // ========== ACTIVITY LOGS ==========
 
 export const getActivityLogs = query({

@@ -13,7 +13,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { Id, Doc } from "../../../../convex/_generated/dataModel";
 
 interface TaskBoardListProps {
     workspaceId: Id<"workspaces">;
@@ -29,7 +29,7 @@ export const TaskBoardList = ({
     const [isOpen, setIsOpen] = useState(false);
     const [newBoardName, setNewBoardName] = useState("");
 
-    const boards = useGetTaskBoards(workspaceId);
+    const { data: boards } = useGetTaskBoards({ workspaceId });
     const { mutate: createBoard, isPending } = useCreateTaskBoard();
 
     const handleCreateBoard = async (e: React.FormEvent) => {
@@ -50,7 +50,7 @@ export const TaskBoardList = ({
     return (
         <div className="flex items-center gap-2">
             <div className="flex gap-2 overflow-x-auto">
-                {boards?.map((board) => (
+                {boards?.map((board: Doc<"taskBoards">) => (
                     <Button
                         key={board._id}
                         variant={selectedBoardId === board._id ? "default" : "outline"}
@@ -78,7 +78,7 @@ export const TaskBoardList = ({
                             value={newBoardName}
                             onChange={(e) => setNewBoardName(e.target.value)}
                         />
-                        <Button type="submit" disabled={isPending}>
+                        <Button type="submit" disabled={isPending || !newBoardName.trim()}>
                             Create Board
                         </Button>
                     </form>

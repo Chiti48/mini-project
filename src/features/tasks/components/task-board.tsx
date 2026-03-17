@@ -133,7 +133,7 @@ export const TaskBoard = ({ boardId }: TaskBoardProps) => {
                                 <Button
                                     type="submit"
                                     size="sm"
-                                    disabled={isPending}
+                                    disabled={isPending || !newListName.trim()}
                                     className="bg-[#337f37] hover:bg-[#2a6b2e]"
                                 >
                                     Add List

@@ -202,8 +202,9 @@ export const TaskList = ({ listId }: TaskListProps) => {
                             <Button
                                 type="submit"
                                 size="sm"
-                                disabled={isPending}
+                                disabled={isPending || !newCardTitle.trim()}
                                 className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs"
+                                variant="default"
                             >
                                 Add Card
                             </Button>
