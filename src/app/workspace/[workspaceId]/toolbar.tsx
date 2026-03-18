@@ -70,8 +70,8 @@ export const Toolbar = () => {
                 </CommandDialog>
             </div>
             <div className="ml-auto flex-1 flex items-center justify-end">
-                <Button variant="transparent" size="iconSm">
-                    <Info className="size-5 text-white" />
+                <Button variant="transparent" size="iconSm" onClick={() => router.push('/page-developing')}>
+                    <Info className="size-5 text-white hover:text-white/80" />
                 </Button>
             </div>
         </nav>

@@ -24,7 +24,7 @@ export const AuthScreen = () => {
                     />
                 </div>
                 <h1 className="text-2xl font-bold text-white drop-shadow-sm tracking-wide">
-                    Welcome Back
+                    Welcome to CT Workspace
                 </h1>
             </div>
 
