@@ -14,7 +14,7 @@ import { useToggleReaction } from "@/features/reactions/api/use-toggle-reaction"
 import { Reactions } from "./reaction";
 import { usePanel } from "@/hooks/use-panel";
 import { ThreadBar } from "./thread-bar";
-
+import { Paperclip, Download } from "lucide-react";
 
 const Renderer = dynamic(() => import("@/components/renderer"), { ssr: false });
 const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
@@ -33,6 +33,7 @@ interface MessageProps {
     >;
     body: Doc<"messages">["body"];
     image: string | null | undefined;
+    attachments?: Array<{ storageId: Id<"_storage">; url: string | null }> | undefined;
     createdAt: Doc<"messages">["_creationTime"];
     updatedAt: Doc<"messages">["updatedAt"];
     isEditing: boolean;
@@ -49,6 +50,33 @@ const formatFullTime = (date: Date) => {
     return `${isToday(date) ? "Today" : isYesterday(date) ? "Yesterday" : format(date, "MMM d, yyyy")} at ${format(date, "h:mm a")}`;
 };
 
+// Attachments component to display file attachments
+const Attachments = ({ attachments }: { attachments: Array<{ storageId: Id<"_storage">; url: string | null }> | undefined }) => {
+    if (!attachments || attachments.length === 0) return null;
+
+    return (
+        <div className="flex flex-col gap-1 mt-1">
+            {attachments.map((attachment, index) => (
+                <div key={attachment.storageId} className="flex items-center gap-2 p-2 bg-slate-100 rounded-md max-w-fit">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Attachment {index + 1}</span>
+                    {attachment.url && (
+                        <a
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                        >
+                            <Download className="h-3 w-3" />
+                            Download
+                        </a>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+
 export const Message = ({
     id,
     isAuthor,
@@ -58,6 +86,7 @@ export const Message = ({
     reactions,
     body,
     image,
+    attachments,
     createdAt,
     updatedAt,
     isEditing,
@@ -151,6 +180,7 @@ export const Message = ({
                             <div className="flex flex-col w-full">
                                 <Renderer value={body} />
                                 <Thumbnail url={image} />
+                                <Attachments attachments={attachments} />
                                 {updatedAt ? (
                                     <span className="text-xs text-muted-foreground">
                                         (edited)
@@ -231,6 +261,7 @@ export const Message = ({
                             </div>
                             <Renderer value={body} />
                             <Thumbnail url={image} />
+                            <Attachments attachments={attachments} />
                             {updatedAt ? (
                                 <span className="text-xs text-muted-foreground">(edited)</span>
                             ) : null}

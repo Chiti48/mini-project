@@ -29,6 +29,7 @@ type CreateMessageValues = {
     parentMessageId: Id<"messages">;
     body: string;
     image?: Id<"_storage"> | undefined;
+    attachments?: Id<"_storage">[] | undefined;
 };
 
 const formatDateLabel = (dateStr: string) => {
@@ -64,10 +65,12 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
 
     const handleSubmit = async ({
         body,
-        image
+        image,
+        file
     }: {
         body: string;
         image: File | null;
+        file: File | null;
     }) => {
         try {
             setIsPendding(true);
@@ -79,8 +82,10 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
                 parentMessageId: messageId,
                 body,
                 image: undefined,
+                attachments: undefined,
             };
 
+            // Upload image
             if (image) {
                 const url = await generateUploadUrl({ throwError: true });
 
@@ -101,6 +106,29 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
                 const { storageId } = await result.json();
 
                 values.image = storageId;
+            }
+
+            // Upload file as attachment
+            if (file) {
+                const url = await generateUploadUrl({ throwError: true });
+
+                if (!url) {
+                    throw new Error("Url not found");
+                }
+
+                const result = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": file.type || "application/octet-stream" },
+                    body: file,
+                });
+
+                if (!result.ok) {
+                    throw new Error("Failed to upload file")
+                }
+
+                const { storageId } = await result.json();
+
+                values.attachments = [storageId];
             }
 
             await createMessage(values, { throwError: true });
@@ -196,6 +224,7 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
                                     reactions={message.reactions}
                                     body={message.body}
                                     image={message.image}
+                                    attachments={message.attachments}
                                     updatedAt={message.updatedAt}
                                     createdAt={message._creationTime}
                                     isEditing={editingId === message._id}
@@ -245,6 +274,7 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
                     isAuthor={message.memberId === currentMember?._id}
                     body={message.body}
                     image={message.image}
+                    attachments={message.attachments}
                     createdAt={message._creationTime}
                     updatedAt={message.updatedAt}
                     id={message._id}

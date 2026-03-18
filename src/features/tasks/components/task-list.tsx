@@ -110,7 +110,7 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
                                     {card.assignee && (
                                         <Avatar className="h-6 w-6 ring-2 ring-white">
                                             <AvatarImage src={card.assignee.image} />
-                                            <AvatarFallback className="bg-[#337f37] text-white text-[10px] font-medium">
+                                            <AvatarFallback className="bg-sky-500 text-white text-[10px] font-medium rounded-md">
                                                 {card.assignee.name?.charAt(0)?.toUpperCase() || "?"}
                                             </AvatarFallback>
                                         </Avatar>

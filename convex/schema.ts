@@ -31,6 +31,7 @@ const schema = defineSchema({
     messages: defineTable({
         body: v.string(),
         image: v.optional(v.id("_storage")),
+        attachments: v.optional(v.array(v.id("_storage"))), // Support multiple file attachments
         memberId: v.id("members"),
         workspaceId: v.id("workspaces"),
         channelId: v.optional(v.id("channels")),

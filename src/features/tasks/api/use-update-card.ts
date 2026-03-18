@@ -8,8 +8,8 @@ type RequestType = {
     cardId: Id<"taskCards">;
     title?: string;
     description?: string;
-    assigneeId?: Id<"members">;
-    dueDate?: number;
+    assigneeId?: Id<"members"> | "__CLEAR__";
+    dueDate?: number | "__CLEAR__";
     labels?: string[];
     attachments?: Id<"_storage">[];
 };

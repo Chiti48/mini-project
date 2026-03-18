@@ -391,8 +391,8 @@ export const updateCard = mutation({
         cardId: v.id("taskCards"),
         title: v.optional(v.string()),
         description: v.optional(v.string()),
-        assigneeId: v.optional(v.id("members")),
-        dueDate: v.optional(v.number()),
+        assigneeId: v.optional(v.union(v.id("members"), v.literal("__CLEAR__"))),
+        dueDate: v.optional(v.union(v.number(), v.literal("__CLEAR__"))),
         labels: v.optional(v.array(v.string())),
         attachments: v.optional(v.array(v.id("_storage"))),
     },
@@ -417,17 +417,20 @@ export const updateCard = mutation({
             update.description = args.description;
             actionDetails.push("updated description");
         }
-        if (args.assigneeId !== undefined) {
+        // Handle clearing optional fields explicitly
+        if (args.assigneeId === "__CLEAR__") {
+            update.assigneeId = undefined; // Clear the field
+            actionDetails.push("removed assignee");
+        } else if (args.assigneeId !== undefined) {
             update.assigneeId = args.assigneeId;
-            if (args.assigneeId) {
-                const assigneeMember = await populateMember(ctx, args.assigneeId);
-                const assigneeUser = assigneeMember ? await populateUser(ctx, assigneeMember.userId) : null;
-                actionDetails.push(`assigned to ${assigneeUser?.name || "someone"}`);
-            } else {
-                actionDetails.push("removed assignee");
-            }
+            const assigneeMember = await populateMember(ctx, args.assigneeId);
+            const assigneeUser = assigneeMember ? await populateUser(ctx, assigneeMember.userId) : null;
+            actionDetails.push(`assigned to ${assigneeUser?.name || "someone"}`);
         }
-        if (args.dueDate !== undefined) {
+        if (args.dueDate === "__CLEAR__") {
+            update.dueDate = undefined; // Clear the field
+            actionDetails.push("removed due date");
+        } else if (args.dueDate !== undefined) {
             update.dueDate = args.dueDate;
             actionDetails.push(`set due date to ${new Date(args.dueDate).toLocaleDateString()}`);
         }
@@ -900,11 +903,23 @@ export const getWorkspaceActivityLogs = query({
             const user = logMember ? await populateUser(ctx, logMember.userId) : null;
             const task = await ctx.db.get(log.taskId);
 
+            // Populate list info for moved cards
+            let fromList = null;
+            let toList = null;
+            if (log.fromListId) {
+                fromList = await populateList(ctx, log.fromListId);
+            }
+            if (log.toListId) {
+                toList = await populateList(ctx, log.toListId);
+            }
+
             populatedPage.push({
                 ...log,
                 member: logMember,
                 user,
                 task,
+                fromList,
+                toList,
             });
         }
 

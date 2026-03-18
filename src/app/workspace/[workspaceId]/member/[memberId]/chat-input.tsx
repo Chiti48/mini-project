@@ -20,6 +20,7 @@ type CreateMessageValues = {
     workspaceId: Id<"workspaces">;
     body: string;
     image?: Id<"_storage"> | undefined;
+    attachments?: Id<"_storage">[] | undefined;
 };
 
 export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
@@ -35,10 +36,12 @@ export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
 
     const handleSubmit = async ({
         body,
-        image
+        image,
+        file
     }: {
         body: string;
         image: File | null;
+        file: File | null;
     }) => {
         try {
             setIsPendding(true);
@@ -49,8 +52,10 @@ export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
                 workspaceId,
                 body,
                 image: undefined,
+                attachments: undefined,
             };
 
+            // Upload image
             if (image) {
                 const url = await generateUploadUrl({ throwError: true });
 
@@ -71,6 +76,29 @@ export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
                 const { storageId } = await result.json();
 
                 values.image = storageId;
+            }
+
+            // Upload file as attachment
+            if (file) {
+                const url = await generateUploadUrl({ throwError: true });
+
+                if (!url) {
+                    throw new Error("Url not found");
+                }
+
+                const result = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": file.type || "application/octet-stream" },
+                    body: file,
+                });
+
+                if (!result.ok) {
+                    throw new Error("Failed to upload file")
+                }
+
+                const { storageId } = await result.json();
+
+                values.attachments = [storageId];
             }
 
             await createMessage(values, { throwError: true });

@@ -8,11 +8,12 @@ type RequestType = {
     body: string,
     workspaceId: Id<"workspaces">,
     image?: Id<"_storage">,
+    attachments?: Id<"_storage">[], // Support multiple file attachments
     channelId?: Id<"channels">,
     parentMessageId?: Id<"messages">,
     conversationId?: Id<"conversations">,
-     
 };
+
 type ResponseType = Id<"messages"> | null;
 
 type Options = {

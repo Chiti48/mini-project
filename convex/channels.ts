@@ -43,8 +43,6 @@ export const remove = mutation({
 
         await ctx.db.delete(args.id);
 
-        await ctx.db.delete(args.id)
-
         return args.id;
     },
 });

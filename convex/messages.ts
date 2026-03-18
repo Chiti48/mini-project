@@ -201,11 +201,23 @@ export const getById = query({
         const reactionsWithoutMemberIdProperty = dedupedReactions.map(
             ({ memberId, ...rest }) => rest,
         );
+        
+        // Get attachment URLs
+        const attachments = message.attachments
+            ? await Promise.all(
+                message.attachments.map(async (storageId) => ({
+                    storageId,
+                    url: await ctx.storage.getUrl(storageId),
+                }))
+            )
+            : undefined;
+        
         return {
             ...message,
             image: message.image
                 ? await ctx.storage.getUrl(message.image)
                 : undefined,
+            attachments,
             user,
             member,
             reactions: reactionsWithoutMemberIdProperty,
@@ -267,6 +279,16 @@ export const get = query({
                         const image = message.image
                             ? await ctx.storage.getUrl(message.image)
                             : undefined;
+                        
+                        // Get attachment URLs
+                        const attachments = message.attachments
+                            ? await Promise.all(
+                                message.attachments.map(async (storageId) => ({
+                                    storageId,
+                                    url: await ctx.storage.getUrl(storageId),
+                                }))
+                            )
+                            : undefined;
 
                         const reactionsWithCounts = reactions.map((reaction) => {
                             return {
@@ -302,6 +324,7 @@ export const get = query({
                         return {
                             ...message,
                             image,
+                            attachments,
                             member,
                             user,
                             reactions: reactionsWithoutMemberIdProperty,
@@ -323,6 +346,7 @@ export const create = mutation({
     args: {
         body: v.string(),
         image: v.optional(v.id("_storage")),
+        attachments: v.optional(v.array(v.id("_storage"))), // Support multiple file attachments
         workspaceId: v.id("workspaces"),
         channelId: v.optional(v.id("channels")),
         conversationId: v.optional(v.id("conversations")),
@@ -357,6 +381,7 @@ export const create = mutation({
             memberId: member._id,
             body: args.body,
             image: args.image,
+            attachments: args.attachments,
             channelId: args.channelId,
             conversationId: _conversationId,
             workspaceId: args.workspaceId,
