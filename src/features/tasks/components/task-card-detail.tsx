@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Calendar, User, Paperclip, Tag, MessageSquare, Activity, Copy, Trash2, X, Check, Plus } from "lucide-react";
+import { Calendar, User, Paperclip, Tag, MessageSquare, Activity, Copy, Trash2, X, Check, Plus, Image as ImageIcon, File as FileIcon, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useGetTaskCardById } from "../api/use-get-cards";
 import { useGetTaskComments } from "../api/use-get-comments";
@@ -113,15 +113,24 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     };
 
     const LABEL_COLORS = [
-        { name: "Red", value: "#ef4444" },
-        { name: "Orange", value: "#f97316" },
-        { name: "Yellow", value: "#eab308" },
-        { name: "Green", value: "#22c55e" },
-        { name: "Blue", value: "#3b82f6" },
-        { name: "Purple", value: "#a855f7" },
-        { name: "Pink", value: "#ec4899" },
-        { name: "Gray", value: "#6b7280" },
-    ];
+    { name: "Red", value: "#e11d48" },      // Rose 600: แดงอมชมพู ดูแพงและสบายตากว่าแดงสด
+    { name: "Orange", value: "#ea580c" },   // Orange 600: ส้มอิฐ ไม่แยงตา
+    { name: "Yellow", value: "#eab308" },   // Yellow 500: เหลืองมัสตาร์ด (อันเดิมนี้สวยอยู่แล้วครับ)
+    { name: "Theme Green", value: "#337f37" }, // Primary: สีเขียวหลักของแอป CT Workspace! 🟢
+    { name: "Blue", value: "#0ea5e9" },     // Sky 500: สีฟ้าโทนเดียวกับ Avatar ที่เราตั้งค่าไว้
+    { name: "Purple", value: "#8b5cf6" },   // Violet 500: ม่วงตุ่นๆ เข้ากับพื้นหลัง Slate ได้ดี
+    { name: "Pink", value: "#f43f5e" },     // Rose 500: ชมพูซอฟต์ๆ
+    { name: "Slate", value: "#64748b" },    // Slate 500: เทาอมฟ้า เข้ากับโทนสีหน้าต่าง Modal ของเรา
+];
+
+    const isLightColor = (color: string): boolean => {
+        const hex = color.replace("#", "");
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 180;
+    };
 
     const handleAssignMember = async (memberId: Id<"members"> | "__CLEAR__") => {
         await updateCard({
@@ -198,7 +207,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                 throw new Error("No storageId received from upload");
             }
             
-            const currentAttachments = card?.attachments || [];
+            const currentAttachments = card?.attachments?.map(a => a.storageId) || [];
             await updateCard({
                 cardId,
                 attachments: [...currentAttachments, storageId],
@@ -221,7 +230,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     };
 
     const handleRemoveAttachment = async (storageId: Id<"_storage">) => {
-        const currentAttachments = card?.attachments || [];
+        const currentAttachments = card?.attachments?.map(a => a.storageId) || [];
         await updateCard({
             cardId,
             attachments: currentAttachments.filter(id => id !== storageId),
@@ -231,9 +240,6 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
         });
     };
 
-    const getStorageUrl = (storageId: Id<"_storage">) => {
-        return `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${storageId}`;
-    };
 
     if (!card) return null;
 
@@ -252,39 +258,87 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2 space-y-6">
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap gap-6">
                             {card.assignee && (
-                                <div>
-                                    <label className="text-xs text-muted-foreground">Assignee</label>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Avatar className="h-6 w-6">
+                                <div className="group">
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <User className="h-3.5 w-3.5" />
+                                        Assignee
+                                    </label>
+                                    <div className="flex items-center gap-2.5 px-3 py-2 bg-linear-to-br from-sky-50 to-white border border-sky-100 rounded-xl shadow-sm group-hover:shadow-md transition-all duration-200">
+                                        <Avatar className="h-8 w-8 ring-2 ring-white shadow-sm">
                                             <AvatarImage src={card.assignee.image} />
-                                            <AvatarFallback className="rounded-md bg-sky-500 text-sm text-white">{card.assignee.name?.charAt(0)}</AvatarFallback>
+                                            <AvatarFallback className="rounded-full bg-linear-to-br from-sky-500 to-blue-600 text-sm text-white font-medium">
+                                                {card.assignee.name?.charAt(0)}
+                                            </AvatarFallback>
                                         </Avatar>
-                                        <span className="text-sm">{card.assignee.name}</span>
+                                        <div>
+                                            <span className="text-sm font-medium text-slate-700">{card.assignee.name}</span>
+                                            <p className="text-xs text-muted-foreground">Assigned to this card</p>
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
                             {card.dueDate && (
-                                <div>
-                                    <label className="text-xs text-muted-foreground">Due Date</label>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Calendar className="h-4 w-4" />
-                                        <span className="text-sm">{format(card.dueDate, "PPP")}</span>
+                                <div className="group">
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <Calendar className="h-3.5 w-3.5" />
+                                        Due Date
+                                    </label>
+                                    <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl shadow-sm border transition-all duration-200 ${
+                                        card.dueDate < Date.now() 
+                                            ? 'bg-linear-to-br from-red-50 to-white border-red-100' 
+                                            : 'bg-linear-to-br from-amber-50 to-white border-amber-100'
+                                    }`}>
+                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-sm ${
+                                            card.dueDate < Date.now() 
+                                                ? 'bg-linear-to-br from-red-500 to-red-600' 
+                                                : 'bg-linear-to-br from-amber-400 to-amber-500'
+                                        }`}>
+                                            <span className="text-white text-xs font-bold text-center leading-tight">
+                                                {format(card.dueDate, "MMM")}<br/>{format(card.dueDate, "d")}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className={`text-sm font-medium ${
+                                                card.dueDate < Date.now() ? 'text-red-600' : 'text-slate-700'
+                                            }`}>
+                                                {format(card.dueDate, "PPP")}
+                                            </span>
+                                            <p className="text-xs text-muted-foreground">
+                                                {card.dueDate < Date.now() ? 'Overdue' : format(card.dueDate, "h:mm a")}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
                             {card.labels && card.labels.length > 0 && (
-                                <div>
-                                    <label className="text-xs text-muted-foreground">Labels</label>
-                                    <div className="flex gap-1 mt-1">
-                                        {card.labels.map((label, i) => (
-                                            <Badge key={i} style={{ backgroundColor: label }}>
-                                                <Tag className="h-3 w-3 mr-1" />
-                                            </Badge>
-                                        ))}
+                                <div className="flex-1">
+                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <Tag className="h-3.5 w-3.5" />
+                                        Labels
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {card.labels.map((label) => {
+                                            const labelName = LABEL_COLORS.find(c => c.value === label)?.name || "Custom";
+                                            return (
+                                                <Badge 
+                                                    key={label} 
+                                                    style={{ 
+                                                        backgroundColor: label,
+                                                        color: isLightColor(label) ? '#1e293b' : '#ffffff'
+                                                    }}
+                                                    className="px-3 py-1.5 rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 cursor-default border-0"
+                                                >
+                                                    <span className="flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
+                                                        {labelName}
+                                                    </span>
+                                                </Badge>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -334,50 +388,80 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                         </div>
 
                         {card.attachments && card.attachments.length > 0 && (
-                            <div>
-                                <h3 className="font-medium mb-2 flex items-center gap-2">
-                                    <Paperclip className="h-4 w-4" />
-                                    Attachments ({card.attachments.length})
+                            <div className="space-y-3">
+                                <h3 className="font-semibold text-sm flex items-center gap-2 text-slate-700">
+                                    <div className="h-7 w-7 rounded-lg bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+                                        <Paperclip className="h-3.5 w-3.5 text-white" />
+                                    </div>
+                                    Attachments
+                                    <Badge variant="secondary" className="ml-1 text-xs">
+                                        {card.attachments.length}
+                                    </Badge>
                                 </h3>
-                                <div>
-    <h3 className="font-medium mb-2 flex items-center gap-2">
-        <Paperclip className="h-4 w-4" />
-        Attachments ({card.attachments.length})
-    </h3>
-    <div className="space-y-2">
-        {card.attachments.map((attachment, i) => {
-            // ดึงชื่อไฟล์ออกมา ถ้ามี .name ก็ใช้เลย ถ้าไม่มีจะดึงเอา ID 5 ตัวหลังมาทำเป็นชื่อไฟล์ชั่วคราวแทน
-            const fileName = `File_${attachment.toString().slice(-5)}`;
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {card.attachments?.map((attachment) => {
+                                        const fileId = attachment.storageId.toString();
+                                        const fileName = `File_${fileId.slice(0, 8)}...${fileId.slice(-4)}`;
+                                        const fileExt = "FILE";
+                                        const isImage = false;
 
-            return (
-                <div key={i} className="flex items-center gap-2 p-2 bg-muted rounded group">
-                    {/* ใส่ shrink-0 ป้องกันไอคอนเบี้ยวถ้าชื่อไฟล์ยาว */}
-                    <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <a 
-                        // ถ้า attachment เป็น Object ต้องใช้ .id (หรือฟิลด์ที่คุณเก็บ id) ส่งเข้าไป
-                        href={getStorageUrl(attachment)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        // เพิ่ม truncate เพื่อตัดคำ (...) ถ้าชื่อไฟล์ยาวเกินไป และซ่อน title ไว้ให้ดูตอนเอาเมาส์ชี้
-                        className="text-sm flex-1 hover:underline text-blue-600 truncate"
-                        title={fileName} 
-                    >
-                        {fileName}
-                    </a>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0 text-muted-foreground hover:text-red-500 hover:bg-red-50"
-                        onClick={() => handleRemoveAttachment(attachment)}
-                        disabled={isUpdatingCard}
-                    >
-                        <X className="h-3 w-3" />
-                    </Button>
-                </div>
-            )
-        })}
-    </div>
-</div>
+                                        return (
+                                            <div 
+                                                key={attachment.storageId} 
+                                                className="group relative flex items-center gap-2 px-2.5 py-2 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow hover:border-violet-200 transition-all duration-200"
+                                            >
+                                                <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${
+                                                    isImage 
+                                                        ? 'bg-linear-to-br from-violet-100 to-fuchsia-100' 
+                                                        : 'bg-linear-to-br from-slate-100 to-gray-100'
+                                                }`}>
+                                                    {isImage ? (
+                                                        <ImageIcon className="h-4 w-4 text-violet-500" />
+                                                    ) : (
+                                                        <FileIcon className="h-4 w-4 text-slate-500" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-medium text-slate-700 truncate leading-tight">
+                                                        {fileName}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground leading-tight">
+                                                        {fileExt}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                    {attachment.url && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                                                            asChild
+                                                        >
+                                                            <a 
+                                                                href={attachment.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title="Download"
+                                                            >
+                                                                <Download className="h-3.5 w-3.5" />
+                                                            </a>
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                        onClick={() => handleRemoveAttachment(attachment.storageId)}
+                                                        disabled={isUpdatingCard}
+                                                        title="Remove"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         )}
 
@@ -480,7 +564,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                     </PopoverTrigger>
                                     <PopoverContent className="w-64 p-2" align="start">
                                         <div className="text-sm font-medium mb-2">Assign Member</div>
-                                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                                        <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
                                             {card.assignee && (
                                                 <Button
                                                     variant="ghost"
@@ -548,9 +632,9 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                             <>
                                                 <Separator className="my-2" />
                                                 <div className="flex gap-1 flex-wrap">
-                                                    {card.labels.map((label, i) => (
+                                                    {card.labels.map((label) => (
                                                         <Badge 
-                                                            key={i} 
+                                                            key={label} 
                                                             style={{ backgroundColor: label }}
                                                             className="text-white"
                                                         >

@@ -377,11 +377,22 @@ export const getCardById = query({
         const creatorMember = await populateMember(ctx, card.createdBy);
         const creator = creatorMember ? await populateUser(ctx, creatorMember.userId) : null;
 
+        // Get attachment URLs
+        const attachments = card.attachments
+            ? await Promise.all(
+                card.attachments.map(async (storageId) => ({
+                    storageId,
+                    url: await ctx.storage.getUrl(storageId),
+                }))
+            )
+            : undefined;
+
         return {
             ...card,
             list,
             assignee,
             creator,
+            attachments,
         };
     },
 });

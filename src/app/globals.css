@@ -183,3 +183,12 @@ body,
   scrollbar-width: thin;
   scrollbar-color: #dcdcdc #f8f8f8;
 }
+
+/* Hide scrollbar utility class */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
