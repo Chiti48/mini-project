@@ -30,7 +30,7 @@ export default function Home() {
         
         <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 bg-[#27443a] rounded-full flex items-center justify-center mb-4 shadow-lg border-2 border-white/10">
-            <img src="/logo-Ct25.png" alt="Logo" className="w-12 h-12" />
+            <img src="/Logo-Ct25.png" alt="Logo" className="w-12 h-12" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide">
             Welcome to CT Workspace
