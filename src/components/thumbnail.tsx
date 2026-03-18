@@ -5,6 +5,7 @@ import {
     DialogHeader,   
     DialogTitle,     
     DialogTrigger,
+    DialogDescription
 } from "@/components/ui/dialog";
 import { XIcon } from "lucide-react";
 
@@ -30,6 +31,9 @@ export const Thumbnail = ({ url }: ThumbnailProps) => {
             <DialogContent className="max-w-200 border-none bg-transparent p-0 shadow-none">
                 {/* เพิ่มส่วนนี้เข้าไป เพื่อซ่อน Title ไว้สำหรับ Screen Reader เท่านั้น */}
                 <DialogHeader className="sr-only">
+                    <DialogDescription>
+                        Image preview
+                    </DialogDescription>
                     <DialogTitle>Image preview</DialogTitle>
                 </DialogHeader>
 

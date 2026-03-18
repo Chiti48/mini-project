@@ -3,7 +3,8 @@ import {
     Dialog,
     DialogContent,
     DialogHeader,
-    DialogTitle
+    DialogTitle,
+    DialogDescription
 } from "@/components/ui/dialog"
 
 import { useCreateChannelModal } from "../store/use-create-channel-modal"
@@ -52,6 +53,9 @@ export const CreateChannelModal = () => {
     return (
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent>
+                <DialogDescription className="sr-only">
+                    Add a channel
+                </DialogDescription>
                 <DialogHeader>
                     <DialogTitle>Add a channel</DialogTitle>
                 </DialogHeader>

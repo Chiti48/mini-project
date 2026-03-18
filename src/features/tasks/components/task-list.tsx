@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Plus, Calendar, Paperclip, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { Draggable, Droppable, DraggableProvided, DraggableStateSnapshot, DroppableProvided, DroppableStateSnapshot } from "@hello-pangea/dnd";
-import Image from "next/image";
 import { useGetTaskCards } from "../api/use-get-cards";
 import { useCreateTaskCard } from "../api/use-create-card";
 import { toast } from "sonner";
@@ -13,12 +12,15 @@ import { Input } from "@/components/ui/input";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // 1. นำเข้า Avatar 
 import { Id } from "../../../../convex/_generated/dataModel";
 import { TaskCardDetail } from "./task-card-detail";
+import { cn } from "@/lib/utils";
 
 interface TaskListProps {
     listId: Id<"taskLists">;
@@ -52,11 +54,15 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         onClick={() => setIsDetailOpen(true)}
+                        // เพิ่ม user-select-none ป้องกันการคลุมดำตัวอักษรตอนลาก
+                        className="select-none" 
                     >
                         <Card
-                            className={`mb-2 cursor-pointer hover:shadow-lg transition-all border-0 shadow-sm ${
-                                snapshot.isDragging ? "shadow-xl rotate-2 ring-2 ring-[#337f37]" : ""
-                            }`}
+                            className={cn(
+                                "cursor-pointer hover:shadow-md transition-all border-0 shadow-sm group",
+                                // เอฟเฟกต์ตอนกำลังลากการ์ด
+                                snapshot.isDragging ? "shadow-xl rotate-2 ring-2 ring-[#337f37] opacity-90" : ""
+                            )}
                         >
                             <CardContent className="p-3">
                                 {/* Labels */}
@@ -66,26 +72,26 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
                                             <Badge
                                                 key={i}
                                                 variant="secondary"
-                                                className="text-xs"
-                                                style={{
-                                                    backgroundColor: label,
-                                                }}
+                                                className="text-[10px] px-1.5 h-4"
+                                                style={{ backgroundColor: label }}
                                             >
-                                                <Tag className="h-3 w-3 mr-1" />
+                                                <Tag className="h-2.5 w-2.5 mr-1" />
                                             </Badge>
                                         ))}
                                     </div>
                                 )}
 
                                 {/* Title */}
-                                <h4 className="font-medium text-sm mb-2">{card.title}</h4>
+                                <h4 className="font-medium text-sm mb-3 text-gray-800 leading-tight">
+                                    {card.title}
+                                </h4>
 
                                 {/* Meta info */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
+                                <div className="flex items-end justify-between mt-auto">
+                                    <div className="flex items-center gap-3">
                                         {/* Due date */}
                                         {card.dueDate && (
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-gray-100 px-1.5 py-0.5 rounded-sm">
                                                 <Calendar className="h-3 w-3" />
                                                 {format(card.dueDate, "MMM d")}
                                             </div>
@@ -93,30 +99,21 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
 
                                         {/* Attachments */}
                                         {card.attachments && card.attachments.length > 0 && (
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                                                 <Paperclip className="h-3 w-3" />
                                                 {card.attachments.length}
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Assignee */}
+                                    {/* Assignee - เปลี่ยนมาใช้ Avatar */}
                                     {card.assignee && (
-                                        <div className="flex items-center gap-1">
-                                            {card.assignee.image ? (
-                                                <Image
-                                                    src={card.assignee.image}
-                                                    alt={card.assignee.name || ""}
-                                                    width={24}
-                                                    height={24}
-                                                    className="rounded-full ring-2 ring-white"
-                                                />
-                                            ) : (
-                                                <div className="w-6 h-6 rounded-full bg-[#337f37] text-white flex items-center justify-center text-xs font-medium">
-                                                    {card.assignee.name?.charAt(0) || "?"}
-                                                </div>
-                                            )}
-                                        </div>
+                                        <Avatar className="h-6 w-6 ring-2 ring-white">
+                                            <AvatarImage src={card.assignee.image} />
+                                            <AvatarFallback className="bg-[#337f37] text-white text-[10px] font-medium">
+                                                {card.assignee.name?.charAt(0)?.toUpperCase() || "?"}
+                                            </AvatarFallback>
+                                        </Avatar>
                                     )}
                                 </div>
                             </CardContent>
@@ -127,6 +124,9 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
 
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogDescription className="sr-only">
+                        Card Details
+                    </DialogDescription>
                     <DialogTitle className="sr-only">Card Details</DialogTitle>
                     <TaskCardDetail
                         cardId={card._id}
@@ -165,15 +165,19 @@ export const TaskList = ({ listId }: TaskListProps) => {
     };
 
     return (
-        <div className="flex flex-col">
+        // 2. ปรับความสูงของ List ให้ยืดหยุ่นและเลื่อน (Scroll) เฉพาะเนื้อหาด้านใน
+        <div className="flex flex-col max-h-full">
             <Droppable droppableId={listId}>
                 {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                     <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`flex-1 min-h-[100px] ${
-                            snapshot.isDraggingOver ? "bg-white/40 rounded-lg" : ""
-                        }`}
+                        // 3. ใช้ flex-col และ gap-y-2 แทน mb-2 ที่การ์ด + ให้ Scroll ได้
+                        className={cn(
+                            "flex-1 overflow-y-auto overflow-x-hidden min-h-[10px] px-2 pb-2 flex flex-col gap-y-2",
+                            "scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent", // ถ้าคุณมี tailwind-scrollbar plugin
+                            snapshot.isDraggingOver ? "bg-black/5 rounded-lg" : ""
+                        )}
                     >
                         {cards?.map((card, cardIndex) => (
                             <TaskCardItem
@@ -188,14 +192,15 @@ export const TaskList = ({ listId }: TaskListProps) => {
             </Droppable>
 
             {/* Add Card Form */}
-            <div className="p-2 pt-0">
+            <div className="px-2 pb-2 pt-2 mt-auto">
                 {isAddingCard ? (
                     <form onSubmit={handleCreateCard}>
                         <Input
                             placeholder="Enter card title..."
                             value={newCardTitle}
                             onChange={(e) => setNewCardTitle(e.target.value)}
-                            className="mb-2 bg-white text-sm"
+                            className="mb-2 bg-white text-sm shadow-sm"
+                            disabled={isPending}
                             autoFocus
                         />
                         <div className="flex gap-2">
@@ -204,7 +209,6 @@ export const TaskList = ({ listId }: TaskListProps) => {
                                 size="sm"
                                 disabled={isPending || !newCardTitle.trim()}
                                 className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs"
-                                variant="default"
                             >
                                 Add Card
                             </Button>
@@ -212,8 +216,9 @@ export const TaskList = ({ listId }: TaskListProps) => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
+                                disabled={isPending}
                                 onClick={() => setIsAddingCard(false)}
-                                className="h-8 text-xs"
+                                className="h-8 text-xs hover:bg-black/5"
                             >
                                 Cancel
                             </Button>
@@ -222,7 +227,7 @@ export const TaskList = ({ listId }: TaskListProps) => {
                 ) : (
                     <Button
                         variant="ghost"
-                        className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-white/50 h-8 text-xs"
+                        className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 h-8 text-xs"
                         onClick={() => setIsAddingCard(true)}
                     >
                         <Plus className="h-3 w-3 mr-2" />

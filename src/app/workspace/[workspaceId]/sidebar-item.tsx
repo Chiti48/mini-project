@@ -7,12 +7,12 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const sidebarItemVariants = cva(
-    "flex items-center gap-1.5 justify-start font-normal h-7 px-[18px] text-sm overflow-hidden",
+    "flex items-center gap-1.5 justify-start font-normal h-7 px-[18px] text-sm overflow-hidden transition-colors duration-200",
     {
         variants: {
             variant: {
-                default: "text-[#f9edffcc]",
-                active: "text-[#481349] bg-white/90 hover:bg-white/90",
+                default: "text-white/70 hover:text-white hover:bg-white/10",
+                active: "text-[#337f37] bg-white/90 hover:bg-white/90 font-medium",
             },
         },
         defaultVariants: {
@@ -25,14 +25,16 @@ interface SidebarItemProps {
     label: string
     id: string
     icon: LucideIcon | IconType
-    varint?: VariantProps<typeof sidebarItemVariants>["variant"]
+    variant?: VariantProps<typeof sidebarItemVariants>["variant"]
+    onClick?: () => void
 };
 
 export const SidebarItem = ({
     label,
     id,
     icon: Icon,
-    varint,
+    variant,
+    onClick,
 }: SidebarItemProps) => {
     const workspaceId = useWorkspaceId();
 
@@ -40,12 +42,16 @@ export const SidebarItem = ({
         <Button
             variant="transparent"
             size="sm"
-            className={cn(sidebarItemVariants({ variant: varint }))}
+            className={cn(sidebarItemVariants({ variant }))}
             asChild
+            onClick={onClick}
         >
             <Link href={`/workspace/${workspaceId}/channel/${id}`}>
                 <Icon className="size-3.5 mr-1 shrink-0"/>
-                <span className="text-sm truncate">{label}</span>
+                <span className="text-sm truncate hidden sm:inline">{label}</span>
+                <span className="text-sm truncate sm:hidden">
+                    {label.length > 12 ? `${label.slice(0, 12)}...` : label}
+                </span>
             </Link>
         </Button>
     );

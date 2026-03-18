@@ -91,13 +91,11 @@ export const Message = ({
 
     const handleRemove = async () => {
         const ok = await confirm();
-
         if (!ok) return;
 
         removeMessage({ id }, {
             onSuccess: () => {
                 toast.success("Message deleted");
-
                 if (parentMessageId === id) {
                     onClose();
                 }
@@ -124,15 +122,18 @@ export const Message = ({
         return (
             <>
                 <ConfirmDialog />
-                <div className={cn(
-                    "flex flex-col gap-2 p-1.5 px-5 hover:bg-gray-100/60 group relative",
-                    isEditing && "bg-[#f2c74433] hover:bg-[#f2c74433]",
-                    isRemovingMessage &&
-                    "bg-rose-500/50 transform transition-all scale-y-0 origin-bottom duration-200"
-                )}>
+                <div 
+                    tabIndex={0} 
+                    onClick={() => {}}
+                    className={cn(
+                        "flex flex-col gap-2 p-1.5 px-5 hover:bg-gray-100/60 focus-within:bg-gray-100/60 outline-none group relative",
+                        isEditing && "bg-[#f2c74433] hover:bg-[#f2c74433] focus-within:bg-[#f2c74433]",
+                        isRemovingMessage && "bg-rose-500/50 transform transition-all scale-y-0 origin-bottom duration-200"
+                    )}
+                >
                     <div className="flex items-start gap-2">
                         <Hint label={formatFullTime(new Date(createdAt))}>
-                            <button className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 w-10 leading-5.5 text-center hover:underline">
+                            <button className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 w-10 leading-5.5 text-center hover:underline">
                                 {format(new Date(createdAt), "hh:mm")}
                             </button>
                         </Hint>
@@ -181,22 +182,26 @@ export const Message = ({
             </>
         );
     }
+    
     const avatarFallback = authorName.charAt(0).toUpperCase();
 
     return (
         <>
             <ConfirmDialog />
-            <div className={cn(
-                "flex flex-col gap-2 p-1.5 px-5 hover:bg-gray-100/60 group relative",
-                isEditing && "bg-[#f2c74433] hover:bg-[#f2c74433]",
-                isRemovingMessage &&
-                "bg-rose-500/50 transform transition-all scale-y-0 origin-bottom duration-200"
-            )}>
+            <div 
+                tabIndex={0} // ทำให้กล่องข้อความสามารถโฟกัสได้เมื่อถูกแตะ
+                onClick={() => {}} // ทริคเล็กๆ เพื่อบังคับให้ iOS Safari รองรับการแตะ
+                className={cn(
+                    "flex flex-col gap-2 p-1.5 px-5 hover:bg-gray-100/60 focus-within:bg-gray-100/60 outline-none group relative", // เพิ่ม focus-within
+                    isEditing && "bg-[#f2c74433] hover:bg-[#f2c74433] focus-within:bg-[#f2c74433]",
+                    isRemovingMessage && "bg-rose-500/50 transform transition-all scale-y-0 origin-bottom duration-200"
+                )}
+            >
                 <div className="flex items-start gap-2">
                     <button onClick={() => onOpenProfile(memberId)}>
                         <Avatar>
                             <AvatarImage src={authorImage} />
-                            <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs ">
+                            <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs">
                                 {avatarFallback}
                             </AvatarFallback>
                         </Avatar>
@@ -251,7 +256,6 @@ export const Message = ({
                         hideThreadButton={hideThreadButton}
                     />
                 )}
-
             </div>
         </>
     );

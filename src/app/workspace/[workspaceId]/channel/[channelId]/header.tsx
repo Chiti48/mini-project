@@ -8,7 +8,8 @@ import {
     DialogHeader,
     DialogClose,
     DialogFooter,
-    DialogTitle
+    DialogTitle,
+    DialogDescription
 } from "@/components/ui/dialog"
 import { TrashIcon } from "lucide-react";
 import { useState } from "react";
@@ -100,6 +101,9 @@ export const Header = ({ title }: HeaderProps) => {
                 </DialogTrigger>
                 <DialogContent className="p-0 bg-gray-50 overflow-hidden">
                     <DialogHeader className="p-4 border-b bg-white">
+                        <DialogDescription>
+                            Channel preferences
+                        </DialogDescription>
                         <DialogTitle>
                             💬 {title}
                         </DialogTitle>
@@ -120,6 +124,9 @@ export const Header = ({ title }: HeaderProps) => {
                                 </div>
                             </DialogTrigger>
                             <DialogContent>
+                                <DialogDescription>
+                                    Rename this channel
+                                </DialogDescription>
                                 <DialogHeader>
                                     <DialogTitle>Rename this channel</DialogTitle>
                                 </DialogHeader>

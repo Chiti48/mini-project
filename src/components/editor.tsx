@@ -260,7 +260,7 @@ const Editor = ({
                                 "ml-auto",
                                 isEmpty
                                     ? "bg-white hover:bg-white text-muted-foreground"
-                                    : "bg-[#8bd668] hover:bg-[#8bd668]/80 text-white"
+                                    : "bg-[#337f37] hover:bg-[#2a6b2e] text-white"
                             )}
                         >
                             <MdSend className="size-4 " />

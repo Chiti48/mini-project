@@ -14,6 +14,7 @@ import { useMemberId } from "@/hooks/use-member-id";
 import { TaskBoardsLink } from "./task-boards-link";
 import { useRouter } from "next/navigation";
 import { ChannelItem } from "./channel-item";
+import { useMobileSidebar } from "@/hooks/use-mobile-sidebar";
 
 export const WorkspaceSidebar = () => {
     const router = useRouter();
@@ -21,6 +22,7 @@ export const WorkspaceSidebar = () => {
     const channelId = useChannelId();
     const memberId = useMemberId();
     const [, setOpen] = useCreateChannelModal();
+    const { close: closeSidebar } = useMobileSidebar();
 
     const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
     const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
@@ -45,51 +47,57 @@ export const WorkspaceSidebar = () => {
     }
 
     return (
-        <div className="flex flex-col bg-[#337f37] h-full"> {/* ใช้สีเขียวตามธีม */}
+        <div className="flex flex-col bg-[#337f37] h-full">
             <WorkspaceHeader workspace={workspace} isAdmin={member.role === "admin"} />
 
-            <div className="flex flex-col px-2 mt-3 gap-y-1">
-                <SidebarItem label="Threads" icon={MessageSquareText} id="threads" />
-                <SidebarItem label="Drafts & Sent" icon={SendHorizonal} id="drafts" />
-                <TaskBoardsLink label="Task Boards" icon={Layout} />
-            </div>
+            <div className="flex flex-col flex-1 overflow-y-auto pb-4">
+                
+                <div className="flex flex-col px-2 mt-3 gap-y-1">
+                    <SidebarItem label="Threads" icon={MessageSquareText} id="threads" onClick={closeSidebar} />
+                    <SidebarItem label="Drafts & Sent" icon={SendHorizonal} id="drafts" onClick={closeSidebar} />
+                    <TaskBoardsLink label="Task Boards" icon={Layout} onClick={closeSidebar} />
+                </div>
 
-            <WorkspaceSection
-                label="Channels"
-                hint="New channel"
-                onNew={member.role === "admin" ? () => setOpen(true) : undefined}
-            >
-                {channels?.map((item) => (
-                    <ChannelItem
-                        key={item._id}
-                        label={item.name}
-                        channelId={item._id}
-                        isActive={channelId === item._id}
-                        onClick={() => {
-                            router.push(`/workspace/${workspaceId}/channel/${item._id}`);
-                        }}
-                    />
-                ))}
-            </WorkspaceSection>
+                <WorkspaceSection
+                    label="Channels"
+                    hint="New channel"
+                    onNew={member.role === "admin" ? () => setOpen(true) : undefined}
+                >
+                    {channels?.map((item) => (
+                        <ChannelItem
+                            key={item._id}
+                            label={item.name}
+                            channelId={item._id}
+                            isActive={channelId === item._id}
+                            onClick={() => {
+                                router.push(`/workspace/${workspaceId}/channel/${item._id}`);
+                                closeSidebar();
+                            }}
+                        />
+                    ))}
+                </WorkspaceSection>
 
-            <WorkspaceSection
-                label="Direct Message"
-                hint="New direct message"
-                onNew={() => { }}
-            >
-                {members?.map((item) => (
-                    <UserItem
-                        key={item._id}
-                        id={item._id}
-                        label={item.user.name}
-                        image={item.user.image}
-                        variant={item._id === memberId ? "active" : "default"}
-                        onClick={() => {
-                            router.push(`/workspace/${workspaceId}/member/${item._id}`);
-                        }}
-                    />
-                ))}
-            </WorkspaceSection>
+                <WorkspaceSection
+                    label="Direct Message"
+                    hint="New direct message"
+                    onNew={() => { }}
+                >
+                    {members?.map((item) => (
+                        <UserItem
+                            key={item._id}
+                            id={item._id}
+                            label={item.user.name}
+                            image={item.user.image}
+                            variant={item._id === memberId ? "active" : "default"}
+                            onClick={() => {
+                                router.push(`/workspace/${workspaceId}/member/${item._id}`);
+                                closeSidebar();
+                            }}
+                        />
+                    ))}
+                </WorkspaceSection>
+
+            </div> 
         </div>
     )
 };

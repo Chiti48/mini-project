@@ -5,14 +5,14 @@ import { IconType } from "react-icons/lib";
 
 interface SidebarButtonProps {
     icon: LucideIcon | IconType
-    lebel: string;
+    label: string;
     isActive?: boolean;
     onClick?: () => void;
 };
 
 export const SidebarButton = ({
     icon: Icon,
-    lebel,
+    label,
     isActive,
     onClick,
 }: SidebarButtonProps) => {
@@ -31,7 +31,7 @@ export const SidebarButton = ({
                 <Icon className="size-5 text-white group-hover:scale-110 transition-all"/>
             </Button>
             <span className="text-[11px] text-white group-hover:text-accent">
-                {lebel}
+                {label}
             </span>
         </div>
     );

@@ -13,6 +13,7 @@ import {
     DialogTitle,
     DialogClose,
     DialogFooter,
+    DialogDescription,
 
 } from "@/components/ui/dialog"
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
@@ -83,6 +84,9 @@ export const PreferencesModal = ({
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="p-0 bg-gray-50 overflow-hidden">
                     <DialogHeader className="p-4 border-b bg-white">
+                        <DialogDescription>
+                            Workspace preferences
+                        </DialogDescription>
                         <DialogTitle>
                             {value}
                         </DialogTitle>
@@ -105,6 +109,9 @@ export const PreferencesModal = ({
                                 </div>
                             </DialogTrigger>
                             <DialogContent>
+                                <DialogDescription>
+                                    Rename this workspace
+                                </DialogDescription>
                                 <DialogHeader>
                                     <DialogTitle>Rename this workspace</DialogTitle>
                                 </DialogHeader>

@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Id } from "../../../../convex/_generated/dataModel";
+import { useConfirm } from "@/hooks/use-confirm"; // 1. นำเข้า useConfirm
 
 interface TaskCardDetailProps {
     cardId: Id<"taskCards">;
@@ -28,10 +29,18 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     const card = useGetTaskCardById(cardId);
     const comments = useGetTaskComments(cardId);
     const activityLogs = useGetTaskActivityLogs(cardId);
+    
+    // 2. ดึง isPending ของแต่ละ Action ออกมาใช้งาน
     const { mutate: createComment, isPending: isCreatingComment } = useCreateTaskComment();
-    const { mutate: updateCard } = useUpdateTaskCard();
-    const { mutate: removeCard } = useRemoveTaskCard();
-    const { mutate: copyCard } = useCopyTaskCard();
+    const { mutate: updateCard, isPending: isUpdatingCard } = useUpdateTaskCard();
+    const { mutate: removeCard, isPending: isRemovingCard } = useRemoveTaskCard();
+    const { mutate: copyCard, isPending: isCopyingCard } = useCopyTaskCard();
+
+    // 3. สร้าง Confirm Dialog สำหรับลบการ์ด
+    const [ConfirmDialog, confirm] = useConfirm(
+        "Delete Card",
+        "Are you sure you want to delete this card? This action cannot be undone."
+    );
 
     const [newComment, setNewComment] = useState("");
     const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -73,7 +82,11 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
         });
     };
 
+    // 4. ดักรอการยืนยันก่อนสั่งลบจริง
     const handleDeleteCard = async () => {
+        const ok = await confirm();
+        if (!ok) return;
+
         await removeCard({ cardId }, {
             onSuccess: () => {
                 toast.success("Card deleted successfully");
@@ -88,246 +101,268 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     if (!card) return null;
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">{card.title}</h2>
-                    <p className="text-sm text-muted-foreground">
-                        in list <span className="font-medium">{card.list?.name}</span>
-                    </p>
+        <>
+            <ConfirmDialog /> {/* 5. วาง ConfirmDialog ไว้ตรงนี้ */}
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold">{card.title}</h2>
+                        <p className="text-sm text-muted-foreground">
+                            in list <span className="font-medium">{card.list?.name}</span>
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Main Content */}
-                <div className="md:col-span-2 space-y-6">
-                    {/* Meta Info */}
-                    <div className="flex flex-wrap gap-4">
-                        {card.assignee && (
-                            <div>
-                                <label className="text-xs text-muted-foreground">Assignee</label>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <Avatar className="h-6 w-6">
-                                        <AvatarImage src={card.assignee.image} />
-                                        <AvatarFallback>{card.assignee.name?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-sm">{card.assignee.name}</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Main Content */}
+                    <div className="md:col-span-2 space-y-6">
+                        {/* Meta Info */}
+                        <div className="flex flex-wrap gap-4">
+                            {card.assignee && (
+                                <div>
+                                    <label className="text-xs text-muted-foreground">Assignee</label>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Avatar className="h-6 w-6">
+                                            <AvatarImage src={card.assignee.image} />
+                                            <AvatarFallback>{card.assignee.name?.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <span className="text-sm">{card.assignee.name}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {card.dueDate && (
-                            <div>
-                                <label className="text-xs text-muted-foreground">Due Date</label>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <Calendar className="h-4 w-4" />
-                                    <span className="text-sm">{format(card.dueDate, "PPP")}</span>
+                            {card.dueDate && (
+                                <div>
+                                    <label className="text-xs text-muted-foreground">Due Date</label>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Calendar className="h-4 w-4" />
+                                        <span className="text-sm">{format(card.dueDate, "PPP")}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {card.labels && card.labels.length > 0 && (
+                            {card.labels && card.labels.length > 0 && (
+                                <div>
+                                    <label className="text-xs text-muted-foreground">Labels</label>
+                                    <div className="flex gap-1 mt-1">
+                                        {card.labels.map((label, i) => (
+                                            <Badge key={i} style={{ backgroundColor: label }}>
+                                                <Tag className="h-3 w-3 mr-1" />
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                            <h3 className="font-medium mb-2">Description</h3>
+                            {isEditingDescription ? (
+                                <div className="space-y-2">
+                                    <Textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Add a description..."
+                                        rows={4}
+                                        disabled={isUpdatingCard} // ล็อคเวลาโหลด
+                                    />
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            size="sm" 
+                                            onClick={handleUpdateDescription} 
+                                            disabled={!description.trim() || isUpdatingCard} 
+                                            className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs"
+                                        >
+                                            {isUpdatingCard ? "Saving..." : "Save"}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setDescription(card.description || "");
+                                                setIsEditingDescription(false);
+                                            }}
+                                            disabled={isUpdatingCard}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    onClick={() => setIsEditingDescription(true)}
+                                    className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 min-h-[60px] text-sm whitespace-pre-wrap"
+                                >
+                                    {card.description || <span className="text-muted-foreground">Add a description...</span>}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Attachments (ยังคงเดิม) */}
+                        {card.attachments && card.attachments.length > 0 && (
                             <div>
-                                <label className="text-xs text-muted-foreground">Labels</label>
-                                <div className="flex gap-1 mt-1">
-                                    {card.labels.map((label, i) => (
-                                        <Badge key={i} style={{ backgroundColor: label }}>
-                                            <Tag className="h-3 w-3 mr-1" />
-                                        </Badge>
+                                <h3 className="font-medium mb-2 flex items-center gap-2">
+                                    <Paperclip className="h-4 w-4" />
+                                    Attachments
+                                </h3>
+                                <div className="space-y-2">
+                                    {card.attachments.map((attachment, i) => (
+                                        <div key={i} className="flex items-center gap-2 p-2 bg-muted rounded">
+                                            <Paperclip className="h-4 w-4" />
+                                            <span className="text-sm">Attachment {i + 1}</span>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
                         )}
-                    </div>
 
-                    {/* Description */}
-                    <div>
-                        <h3 className="font-medium mb-2">Description</h3>
-                        {isEditingDescription ? (
-                            <div className="space-y-2">
-                                <Textarea
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Add a description..."
-                                    rows={4}
-                                />
-                                <div className="flex gap-2">
-                                    <Button size="sm" onClick={handleUpdateDescription} disabled={!description.trim()} className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs">
-                                        Save
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => {
-                                            setDescription(card.description || "");
-                                            setIsEditingDescription(false);
-                                        }}
+                        {/* Tabs for Comments and Activity */}
+                        <Tabs defaultValue="comments">
+                            <TabsList>
+                                <TabsTrigger value="comments" className="flex items-center gap-2">
+                                    <MessageSquare className="h-4 w-4" />
+                                    Comments
+                                </TabsTrigger>
+                                <TabsTrigger value="activity" className="flex items-center gap-2">
+                                    <Activity className="h-4 w-4" />
+                                    Activity
+                                </TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="comments" className="space-y-4 mt-4">
+                                {/* Add Comment */}
+                                <form onSubmit={handleAddComment} className="flex gap-2">
+                                    <Input
+                                        placeholder="Write a comment..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        disabled={isCreatingComment}
+                                    />
+                                    <Button 
+                                        type="submit" 
+                                        disabled={isCreatingComment || !newComment.trim()} 
+                                        className="bg-[#337f37] hover:bg-[#2a6b2e] text-xs align-middle"
                                     >
-                                        Cancel
+                                        Post
                                     </Button>
+                                </form>
+
+                                {/* Comments List */}
+                                <div className="space-y-4 mt-6">
+                                    {comments?.length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No comments yet.</p>
+                                    )}
+                                    {comments?.map((comment) => (
+                                        <div key={comment._id} className="flex gap-3">
+                                            <Avatar className="h-8 w-8 mt-1">
+                                                <AvatarImage src={comment.user?.image} />
+                                                <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs">
+                                                    {comment.user?.name?.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 bg-muted/50 p-3 rounded-md">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-medium text-sm">
+                                                        {comment.user?.name}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {format(comment._creationTime, "PPp")}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
-                        ) : (
-                            <div
-                                onClick={() => setIsEditingDescription(true)}
-                                className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 min-h-[60px]"
-                            >
-                                {card.description || "Add a description..."}
-                            </div>
-                        )}
-                    </div>
+                            </TabsContent>
 
-                    {/* Attachments */}
-                    {card.attachments && card.attachments.length > 0 && (
-                        <div>
-                            <h3 className="font-medium mb-2 flex items-center gap-2">
-                                <Paperclip className="h-4 w-4" />
-                                Attachments
-                            </h3>
-                            <div className="space-y-2">
-                                {card.attachments.map((attachment, i) => (
-                                    <div key={i} className="flex items-center gap-2 p-2 bg-muted rounded">
-                                        <Paperclip className="h-4 w-4" />
-                                        <span className="text-sm">Attachment {i + 1}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tabs for Comments and Activity */}
-                    <Tabs defaultValue="comments">
-                        <TabsList>
-                            <TabsTrigger value="comments" className="flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4" />
-                                Comments
-                            </TabsTrigger>
-                            <TabsTrigger value="activity" className="flex items-center gap-2">
-                                <Activity className="h-4 w-4" />
-                                Activity
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="comments" className="space-y-4">
-                            {/* Add Comment */}
-                            <form onSubmit={handleAddComment} className="flex gap-2">
-                                <Input
-                                    placeholder="Write a comment..."
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                />
-                                <Button type="submit" disabled={isCreatingComment || !newComment.trim()} className="bg-[#337f37] hover:bg-[#2a6b2e] text-xs align-middle">
-                                    Post
-                                </Button>
-                            </form>
-
-                            {/* Comments List */}
-                            <div className="space-y-4">
-                                {comments?.map((comment) => (
-                                    <div key={comment._id} className="flex gap-3">
+                            <TabsContent value="activity" className="space-y-4 mt-4">
+                                {activityLogs?.length === 0 && (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No activity yet.</p>
+                                )}
+                                {activityLogs?.map((log) => (
+                                    <div key={log._id} className="flex gap-3">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src={comment.user?.image} />
+                                            <AvatarImage src={log.user?.image} />
                                             <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs">
-                                                {comment.user?.name?.charAt(0)}
+                                                {log.user?.name?.charAt(0)}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium text-sm">
-                                                    {comment.user?.name}
+                                                    {log.user?.name}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {format(comment._creationTime, "PPp")}
+                                                    {format(log._creationTime, "PPp")}
                                                 </span>
                                             </div>
-                                            <p className="text-sm mt-1">{comment.content}</p>
+                                            <p className="text-sm mt-1">
+                                                {log.action === "moved" && log.fromList && log.toList
+                                                    ? `moved this card from "${log.fromList.name}" to "${log.toList.name}"`
+                                                    : log.details}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="activity" className="space-y-4">
-                            {activityLogs?.map((log) => (
-                                <div key={log._id} className="flex gap-3">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={log.user?.image} />
-                                        <AvatarFallback className="rounded-md bg-sky-500 text-white text-xs">
-                                            {log.user?.name?.charAt(0)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium text-sm">
-                                                {log.user?.name}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {format(log._creationTime, "PPp")}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm mt-1">
-                                            {log.action === "moved" && log.fromList && log.toList
-                                                ? `moved this card from "${log.fromList.name}" to "${log.toList.name}"`
-                                                : log.details}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </TabsContent>
-                    </Tabs>
-                </div>
-
-                {/* Sidebar */}
-                <div className="space-y-4">
-                    <div>
-                        <h4 className="text-sm font-medium mb-2">Add to card</h4>
-                        <div className="space-y-2">
-                            <Button variant="outline" className="w-full justify-start" size="sm">
-                                <User className="h-4 w-4 mr-2" />
-                                Members
-                            </Button>
-                            <Button variant="outline" className="w-full justify-start" size="sm">
-                                <Tag className="h-4 w-4 mr-2" />
-                                Labels
-                            </Button>
-                            <Button variant="outline" className="w-full justify-start" size="sm">
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Dates
-                            </Button>
-                            <Button variant="outline" className="w-full justify-start" size="sm">
-                                <Paperclip className="h-4 w-4 mr-2" />
-                                Attachment
-                            </Button>
-                        </div>
+                            </TabsContent>
+                        </Tabs>
                     </div>
 
-                    {/* Actions */}
-                    <div>
-                        <h4 className="text-sm font-medium mb-2">Actions</h4>
-                        <div className="space-y-2">
-                            <Button 
-                                variant="outline" 
-                                className="w-full justify-start" 
-                                size="sm"
-                                onClick={handleCopyCard}
-                            >
-                                <Copy className="h-4 w-4 mr-2" />
-                                Copy
-                            </Button>
-                            <Button 
-                                variant="outline" 
-                                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
-                                size="sm"
-                                onClick={handleDeleteCard}
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                            </Button>
+                    {/* Sidebar Actions */}
+                    <div className="space-y-6">
+                        <div>
+                            <h4 className="text-sm font-medium mb-2">Add to card</h4>
+                            <div className="space-y-2">
+                                <Button variant="outline" className="w-full justify-start" size="sm">
+                                    <User className="h-4 w-4 mr-2" />
+                                    Members
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start" size="sm">
+                                    <Tag className="h-4 w-4 mr-2" />
+                                    Labels
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start" size="sm">
+                                    <Calendar className="h-4 w-4 mr-2" />
+                                    Dates
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start" size="sm">
+                                    <Paperclip className="h-4 w-4 mr-2" />
+                                    Attachment
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="text-sm font-medium mb-2">Actions</h4>
+                            <div className="space-y-2">
+                                <Button 
+                                    variant="outline" 
+                                    className="w-full justify-start" 
+                                    size="sm"
+                                    onClick={handleCopyCard}
+                                    disabled={isCopyingCard}
+                                >
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    {isCopyingCard ? "Copying..." : "Copy"}
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
+                                    size="sm"
+                                    onClick={handleDeleteCard}
+                                    disabled={isRemovingCard}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {isRemovingCard ? "Deleting..." : "Delete"}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };

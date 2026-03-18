@@ -7,6 +7,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,9 @@ export const CreateWorkspaceModal = () => {
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent>
                 <DialogHeader>
+                    <DialogDescription className="sr-only">
+                        Create New Workspace
+                    </DialogDescription>
                     <DialogTitle>Create New Workspace</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">

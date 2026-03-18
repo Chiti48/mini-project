@@ -32,16 +32,17 @@ export const ChannelItem = ({
             variant="transparent"
             size="sm"
             className={cn(
-                "flex items-center gap-1.5 justify-start font-normal h-7 px-4.5 text-sm overflow-hidden w-full",
+                "flex items-center gap-1.5 justify-start font-normal h-7 px-4.5 text-sm overflow-hidden w-full transition-colors duration-200",
                 isActive
                     ? "text-[#481349] bg-white/90 hover:bg-white/90"
-                    : "text-[#f9edffcc]"
+                    : "text-[#f9edffcc] hover:text-white"
             )}
             onClick={handleClick}
         >
             <Hash className="size-3.5 mr-1 shrink-0" />
-            <span className="text-sm truncate text-left flex-1">{label}</span>
-            <UnreadBadge channelId={channelId} className="ml-auto" />
+            <span className="text-sm truncate text-left flex-1 hidden sm:inline">{label}</span>
+            <span className="text-sm truncate text-left flex-1 sm:hidden">{label.slice(0, 8)}...</span>
+            <UnreadBadge channelId={channelId} className="ml-auto shrink-0" />
         </Button>
     );
 };

@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown, ListFilter, SquarePen } from "lucide-react";
+import { ChevronDown, ListFilter, Settings, SquarePen, UserPlus } from "lucide-react";
 import { PreferencesModal } from "./preferences-modal";
 import { useState } from "react";
 import { InviteModal } from "./invite-modal";
@@ -66,6 +66,7 @@ export const WorkspaceHeader = ({ workspace, isAdmin }: WorkspaceHeaderProps) =>
                                     className="cursor-pointer py-2"
                                     onClick={() => setInviteOpen(true)}
                                 >
+                                    <UserPlus className="size-4 mr-2" />
                                     Invite people to {workspace.name}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
@@ -73,7 +74,8 @@ export const WorkspaceHeader = ({ workspace, isAdmin }: WorkspaceHeaderProps) =>
                                     className="cursor-pointer py-2"
                                     onClick={() => setpreferencesOpen(true)}
                                 >
-                                    Manage workspace
+                                    <Settings className="size-4 mr-2" />
+                                    Manage workspace     
                                 </DropdownMenuItem>
                             </>
                         )}

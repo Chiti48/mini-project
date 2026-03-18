@@ -34,12 +34,16 @@ interface EmojiPopoverProps {
     hint?: string;
     // ใช้ Type ที่เราสร้างไว้แทน any
     onEmojiSelect: (emoji: EmojiData) => void;
+    align?: "start" | "center" | "end"; // เพิ่ม Option ให้ปรับตำแหน่งได้
+    side?: "top" | "bottom" | "left" | "right"; // เพิ่ม Option ให้ปรับทิศทางได้
 };
 
 export const EmojiPopover = ({
     children,
     hint = "Emoji",
     onEmojiSelect,
+    align = "center", // ค่าเริ่มต้นให้อยู่ตรงกลาง
+    side = "bottom",  // ค่าเริ่มต้นให้เด้งลงล่าง
 }: EmojiPopoverProps) => {
     const [popoverOpen, setPopoverOpen] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -71,8 +75,15 @@ export const EmojiPopover = ({
                         <p className="font-medium text-xs">{hint}</p>
                     </TooltipContent>
                 </Tooltip>
-                <PopoverContent className="p-0 w-full border-none shadow-none">
-                    <Picker data={data} onEmojiSelect={onSelect}/>
+                <PopoverContent 
+                    align={align}
+                    side={side}
+                    className="p-0 w-full border-none shadow-none z-50">
+                    <Picker 
+                        data={data}
+                        theme="light"
+                        onEmojiSelect={onSelect}
+                    />
                 </PopoverContent>
             </Popover>
         </TooltipProvider>
