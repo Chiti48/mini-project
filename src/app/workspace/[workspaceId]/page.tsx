@@ -16,9 +16,7 @@ const WorkspaceIdPage = () => {
 
     const { data: workspace, isLoading: workspaceLoading } = useGetWorkspace({ id: workspaceId });
     const { data: member, isLoading: memberLoading } = useCurrentMember({ workspaceId });
-    const { data: channels, isLoading: channelsLoading } = useGetChannels({
-        workspaceId,
-    });
+    const { data: channels, isLoading: channelsLoading } = useGetChannels({ workspaceId });
 
     const channelId = useMemo(() => channels?.[0]?._id, [channels]);
     const isAdmin = useMemo(() => member?.role === "admin", [member?.role]);

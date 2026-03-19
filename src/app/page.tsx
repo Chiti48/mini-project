@@ -26,7 +26,6 @@ export default function Home() {
   // ==========================================
   // EXTREME 3D Tilt Logic
   // ==========================================
-  // 🟢 กฎของ React: Hook ทุกตัวต้องอยู่ด้านบนสุด ห้ามอยู่ใน if-else
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   

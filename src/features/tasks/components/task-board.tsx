@@ -85,7 +85,7 @@ export const TaskBoard = ({ boardId }: TaskBoardProps) => {
     // 3. ปรับฟังก์ชันให้รอการยืนยันก่อนลบ
     const handleDeleteList = async (listId: Id<"taskLists">) => {
         const ok = await confirm();
-        
+
         if (!ok) return; // ถ้ายกเลิก ก็หยุดการทำงาน
 
         removeList({ listId }, {
@@ -100,7 +100,7 @@ export const TaskBoard = ({ boardId }: TaskBoardProps) => {
 
     return (
         <>
-            <ConfirmDialog /> {/* 4. วาง Dialog ไว้ด้านบนสุด */}
+            <ConfirmDialog />
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="flex gap-4 overflow-x-auto p-4 min-h-[calc(100vh-200px)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     {lists?.map((list) => (

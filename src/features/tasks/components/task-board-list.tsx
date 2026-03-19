@@ -46,7 +46,7 @@ export const TaskBoardList = ({
                 toast.success("Board created successfully");
                 setNewBoardName("");
                 setIsOpen(false);
-                
+
                 // ถ้าระบบส่ง ID กลับมา เราสามารถสั่งให้เลือก Board ใหม่นี้อัตโนมัติได้เลย
                 if (newBoardId) {
                     onSelectBoard(newBoardId as Id<"taskBoards">);
@@ -68,11 +68,10 @@ export const TaskBoardList = ({
                         // ปรับสีให้เข้ากับธีมเขียว ถ้าเป็น Board ที่ถูกเลือก
                         variant={selectedBoardId === board._id ? "default" : "outline"}
                         onClick={() => onSelectBoard(board._id)}
-                        className={`whitespace-nowrap transition-colors ${
-                            selectedBoardId === board._id 
-                                ? "bg-[#337f37] hover:bg-[#337f37]/90 text-white border-transparent" 
-                                : ""
-                        }`}
+                        className={`whitespace-nowrap transition-colors ${selectedBoardId === board._id
+                            ? "bg-[#337f37] hover:bg-[#337f37]/90 text-white border-transparent"
+                            : ""
+                            }`}
                         size="sm"
                     >
                         {board.name}
@@ -103,16 +102,16 @@ export const TaskBoardList = ({
                         />
                         {/* 2. จัดเรียงปุ่มให้สวยงาม และมีปุ่ม Cancel */}
                         <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                                type="button" 
-                                variant="outline" 
+                            <Button
+                                type="button"
+                                variant="outline"
                                 onClick={() => setIsOpen(false)}
                                 disabled={isPending}
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 disabled={isPending || !newBoardName.trim()}
                                 className="bg-[#337f37] hover:bg-[#337f37]/90 text-white"
                             >

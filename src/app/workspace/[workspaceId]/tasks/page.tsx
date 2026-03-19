@@ -32,22 +32,22 @@ import { Doc, Id } from "../../../../../convex/_generated/dataModel";
 const TasksPage = () => {
     const params = useParams();
     const workspaceId = params.workspaceId as Id<"workspaces">;
-    
+
     // 1. รับค่า member ตรงๆ เพราะ hook useCurrentMember ยังคง return ค่ามาตรงๆ
     const { data: member, isLoading: isLoadingMember } = useCurrentMember({ workspaceId });
-    
+
     // 2. ใช้ Destructuring เพราะเราแก้ไฟล์ hook useGetTaskBoards ให้ return { data, isLoading } แล้ว
     const { data: boards, isLoading: isLoadingBoards } = useGetTaskBoards({ workspaceId });
 
     const { mutate: createBoard, isPending: isCreatingBoard } = useCreateTaskBoard();
     const { mutate: removeBoard } = useRemoveTaskBoard();
     const { mutate: updateBoard, isPending: isUpdatingBoard } = useUpdateTaskBoard(); // ดึง isPending มาด้วยเพื่อใช้ตอน Rename
-    
+
     const [DeleteDialog, confirmDelete] = useConfirm(
         "Delete Board",
         "Delete this board? All tasks and lists will be permanently deleted.",
     );
-    
+
     const [selectedBoardId, setSelectedBoardId] = useState<Id<"taskBoards"> | undefined>(undefined);
     const [newBoardName, setNewBoardName] = useState("");
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -104,7 +104,7 @@ const TasksPage = () => {
         if (!ok) return;
 
         // 3. ปรับให้ส่ง id เป็น object ตามที่ Convex มักจะต้องการ (หรือถ้า API ของคุณรับ ID เพียวๆ ให้แก้กลับเป็น removeBoard(boardId, {...}))
-        removeBoard(boardId, { 
+        removeBoard(boardId, {
             onSuccess: () => {
                 toast.success("Board deleted successfully");
                 if (selectedBoardId === boardId) {
@@ -125,9 +125,9 @@ const TasksPage = () => {
 
     const confirmRenameBoard = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        
+
         if (!editingBoardId || !renameBoardName.trim()) return;
-        
+
         updateBoard(
             { boardId: editingBoardId, name: renameBoardName.trim() },
             {
@@ -167,7 +167,7 @@ const TasksPage = () => {
                     </div>
                     <div>
                         <h1 className="text-xl font-semibold text-gray-900">Task Boards</h1>
-                        <p className="text-sm text-gray-500">Manage your projects with real-time collaboration</p>
+                        <p className="text-sm text-gray-500 truncate">Manage your projects with real-time collaboration</p>
                     </div>
                 </div>
 
@@ -179,15 +179,14 @@ const TasksPage = () => {
                                 <Button
                                     variant={selectedBoardId === board._id ? "default" : "ghost"}
                                     onClick={() => setSelectedBoardId(board._id)}
-                                    className={`whitespace-nowrap transition-all ${
-                                        selectedBoardId === board._id
-                                            ? "bg-[#337f37] hover:bg-[#2a6b2e] text-white shadow-sm"
-                                            : "text-gray-600 hover:text-[#337f37] hover:bg-[#337f37]/10"
-                                    }`}
+                                    className={`whitespace-nowrap transition-all ${selectedBoardId === board._id
+                                        ? "bg-[#337f37] hover:bg-[#2a6b2e] text-white shadow-sm"
+                                        : "text-gray-600 hover:text-[#337f37] hover:bg-[#337f37]/10"
+                                        }`}
                                 >
                                     {board.name}
                                 </Button>
-                                
+
                                 {member?.role === "admin" && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -293,7 +292,7 @@ const TasksPage = () => {
                     </div>
                 )}
             </div>
-            
+
             <DeleteDialog />
 
             {/* Rename Board Dialog */}

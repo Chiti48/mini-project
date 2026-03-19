@@ -35,7 +35,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     const card = useGetTaskCardById(cardId);
     const comments = useGetTaskComments(cardId);
     const activityLogs = useGetTaskActivityLogs(cardId);
-    
+
     const { mutate: createComment, isPending: isCreatingComment } = useCreateTaskComment();
     const { mutate: updateCard, isPending: isUpdatingCard } = useUpdateTaskCard();
     const { mutate: removeCard, isPending: isRemovingCard } = useRemoveTaskCard();
@@ -52,12 +52,12 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     const [newComment, setNewComment] = useState("");
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     const [description, setDescription] = useState(card?.description || "");
-    
+
     const [memberPopoverOpen, setMemberPopoverOpen] = useState(false);
     const [labelPopoverOpen, setLabelPopoverOpen] = useState(false);
     const [datePopoverOpen, setDatePopoverOpen] = useState(false);
     const [attachmentPopoverOpen, setAttachmentPopoverOpen] = useState(false);
-    
+
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -113,15 +113,15 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
     };
 
     const LABEL_COLORS = [
-    { name: "Red", value: "#e11d48" },      // Rose 600: แดงอมชมพู ดูแพงและสบายตากว่าแดงสด
-    { name: "Orange", value: "#ea580c" },   // Orange 600: ส้มอิฐ ไม่แยงตา
-    { name: "Yellow", value: "#eab308" },   // Yellow 500: เหลืองมัสตาร์ด (อันเดิมนี้สวยอยู่แล้วครับ)
-    { name: "Theme Green", value: "#337f37" }, // Primary: สีเขียวหลักของแอป CT Workspace! 🟢
-    { name: "Blue", value: "#0ea5e9" },     // Sky 500: สีฟ้าโทนเดียวกับ Avatar ที่เราตั้งค่าไว้
-    { name: "Purple", value: "#8b5cf6" },   // Violet 500: ม่วงตุ่นๆ เข้ากับพื้นหลัง Slate ได้ดี
-    { name: "Pink", value: "#f43f5e" },     // Rose 500: ชมพูซอฟต์ๆ
-    { name: "Slate", value: "#64748b" },    // Slate 500: เทาอมฟ้า เข้ากับโทนสีหน้าต่าง Modal ของเรา
-];
+        { name: "Red", value: "#e11d48" },      // Rose 600: แดงอมชมพู ดูแพงและสบายตากว่าแดงสด
+        { name: "Orange", value: "#ea580c" },   // Orange 600: ส้มอิฐ ไม่แยงตา
+        { name: "Yellow", value: "#eab308" },   // Yellow 500: เหลืองมัสตาร์ด (อันเดิมนี้สวยอยู่แล้วครับ)
+        { name: "Theme Green", value: "#337f37" }, // Primary: สีเขียวหลักของแอป CT Workspace! 🟢
+        { name: "Blue", value: "#0ea5e9" },     // Sky 500: สีฟ้าโทนเดียวกับ Avatar ที่เราตั้งค่าไว้
+        { name: "Purple", value: "#8b5cf6" },   // Violet 500: ม่วงตุ่นๆ เข้ากับพื้นหลัง Slate ได้ดี
+        { name: "Pink", value: "#f43f5e" },     // Rose 500: ชมพูซอฟต์ๆ
+        { name: "Slate", value: "#64748b" },    // Slate 500: เทาอมฟ้า เข้ากับโทนสีหน้าต่าง Modal ของเรา
+    ];
 
     const isLightColor = (color: string): boolean => {
         const hex = color.replace("#", "");
@@ -164,7 +164,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
         const newLabels = currentLabels.includes(color)
             ? currentLabels.filter(l => l !== color)
             : [...currentLabels, color];
-        
+
         await updateCard({
             cardId,
             labels: newLabels,
@@ -187,26 +187,26 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
         setIsUploading(true);
         try {
             const uploadUrl = await generateUploadUrl();
-            
+
             const result = await fetch(uploadUrl, {
                 method: "POST",
                 headers: { "Content-Type": file.type || "application/octet-stream" },
                 body: file,
             });
-            
+
             if (!result.ok) {
                 const errorText = await result.text();
                 console.error("Upload failed:", result.status, errorText);
                 throw new Error(`Upload failed: ${result.status} ${errorText}`);
             }
-            
+
             const response = await result.json();
             const storageId = response.storageId || response.id;
-            
+
             if (!storageId) {
                 throw new Error("No storageId received from upload");
             }
-            
+
             const currentAttachments = card?.attachments?.map(a => a.storageId) || [];
             await updateCard({
                 cardId,
@@ -286,24 +286,21 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                         <Calendar className="h-3.5 w-3.5" />
                                         Due Date
                                     </label>
-                                    <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl shadow-sm border transition-all duration-200 ${
-                                        card.dueDate < Date.now() 
-                                            ? 'bg-linear-to-br from-red-50 to-white border-red-100' 
-                                            : 'bg-linear-to-br from-amber-50 to-white border-amber-100'
-                                    }`}>
-                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-sm ${
-                                            card.dueDate < Date.now() 
-                                                ? 'bg-linear-to-br from-red-500 to-red-600' 
-                                                : 'bg-linear-to-br from-amber-400 to-amber-500'
+                                    <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl shadow-sm border transition-all duration-200 ${card.dueDate < Date.now()
+                                        ? 'bg-linear-to-br from-red-50 to-white border-red-100'
+                                        : 'bg-linear-to-br from-amber-50 to-white border-amber-100'
                                         }`}>
+                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-sm ${card.dueDate < Date.now()
+                                            ? 'bg-linear-to-br from-red-500 to-red-600'
+                                            : 'bg-linear-to-br from-amber-400 to-amber-500'
+                                            }`}>
                                             <span className="text-white text-xs font-bold text-center leading-tight">
-                                                {format(card.dueDate, "MMM")}<br/>{format(card.dueDate, "d")}
+                                                {format(card.dueDate, "MMM")}<br />{format(card.dueDate, "d")}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className={`text-sm font-medium ${
-                                                card.dueDate < Date.now() ? 'text-red-600' : 'text-slate-700'
-                                            }`}>
+                                            <span className={`text-sm font-medium ${card.dueDate < Date.now() ? 'text-red-600' : 'text-slate-700'
+                                                }`}>
                                                 {format(card.dueDate, "PPP")}
                                             </span>
                                             <p className="text-xs text-muted-foreground">
@@ -324,9 +321,9 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                         {card.labels.map((label) => {
                                             const labelName = LABEL_COLORS.find(c => c.value === label)?.name || "Custom";
                                             return (
-                                                <Badge 
-                                                    key={label} 
-                                                    style={{ 
+                                                <Badge
+                                                    key={label}
+                                                    style={{
                                                         backgroundColor: label,
                                                         color: isLightColor(label) ? '#1e293b' : '#ffffff'
                                                     }}
@@ -356,10 +353,10 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                         disabled={isUpdatingCard}
                                     />
                                     <div className="flex gap-2">
-                                        <Button 
-                                            size="sm" 
-                                            onClick={handleUpdateDescription} 
-                                            disabled={!description.trim() || isUpdatingCard} 
+                                        <Button
+                                            size="sm"
+                                            onClick={handleUpdateDescription}
+                                            disabled={!description.trim() || isUpdatingCard}
                                             className="bg-[#337f37] hover:bg-[#2a6b2e] h-8 text-xs"
                                         >
                                             {isUpdatingCard ? "Saving..." : "Save"}
@@ -380,7 +377,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                             ) : (
                                 <div
                                     onClick={() => setIsEditingDescription(true)}
-                                    className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 min-h-[60px] text-sm whitespace-pre-wrap"
+                                    className="p-3 bg-muted rounded-md cursor-pointer hover:bg-muted/80 min-h-15 text-sm whitespace-pre-wrap"
                                 >
                                     {card.description || <span className="text-muted-foreground">Add a description...</span>}
                                 </div>
@@ -406,15 +403,14 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                         const isImage = false;
 
                                         return (
-                                            <div 
-                                                key={attachment.storageId} 
+                                            <div
+                                                key={attachment.storageId}
                                                 className="group relative flex items-center gap-2 px-2.5 py-2 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow hover:border-violet-200 transition-all duration-200"
                                             >
-                                                <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${
-                                                    isImage 
-                                                        ? 'bg-linear-to-br from-violet-100 to-fuchsia-100' 
-                                                        : 'bg-linear-to-br from-slate-100 to-gray-100'
-                                                }`}>
+                                                <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${isImage
+                                                    ? 'bg-linear-to-br from-violet-100 to-fuchsia-100'
+                                                    : 'bg-linear-to-br from-slate-100 to-gray-100'
+                                                    }`}>
                                                     {isImage ? (
                                                         <ImageIcon className="h-4 w-4 text-violet-500" />
                                                     ) : (
@@ -437,7 +433,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                                             className="h-7 w-7 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
                                                             asChild
                                                         >
-                                                            <a 
+                                                            <a
                                                                 href={attachment.url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
@@ -485,9 +481,9 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                         onChange={(e) => setNewComment(e.target.value)}
                                         disabled={isCreatingComment}
                                     />
-                                    <Button 
-                                        type="submit" 
-                                        disabled={isCreatingComment || !newComment.trim()} 
+                                    <Button
+                                        type="submit"
+                                        disabled={isCreatingComment || !newComment.trim()}
                                         className="bg-[#337f37] hover:bg-[#2a6b2e] text-xs align-middle"
                                     >
                                         Post
@@ -617,9 +613,8 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                                     <button
                                                         key={color.value}
                                                         onClick={() => handleToggleLabel(color.value)}
-                                                        className={`w-10 h-10 rounded-md transition-all ${
-                                                            isSelected ? "ring-2 ring-offset-2 ring-black scale-110" : "hover:scale-105"
-                                                        }`}
+                                                        className={`w-10 h-10 rounded-md transition-all ${isSelected ? "ring-2 ring-offset-2 ring-black scale-110" : "hover:scale-105"
+                                                            }`}
                                                         style={{ backgroundColor: color.value }}
                                                         title={color.name}
                                                     >
@@ -633,8 +628,8 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                                 <Separator className="my-2" />
                                                 <div className="flex gap-1 flex-wrap">
                                                     {card.labels.map((label) => (
-                                                        <Badge 
-                                                            key={label} 
+                                                        <Badge
+                                                            key={label}
                                                             style={{ backgroundColor: label }}
                                                             className="text-white"
                                                         >
@@ -686,6 +681,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                     <PopoverContent className="w-64 p-3" align="start">
                                         <div className="text-sm font-medium mb-2">Add Attachment</div>
                                         <input
+                                            aria-label="Add Attachment"
                                             type="file"
                                             ref={fileInputRef}
                                             onChange={handleFileUpload}
@@ -717,9 +713,9 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                         <div>
                             <h4 className="text-sm font-medium mb-2">Actions</h4>
                             <div className="space-y-2">
-                                <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start" 
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
                                     size="sm"
                                     onClick={handleCopyCard}
                                     disabled={isCopyingCard}
@@ -727,9 +723,9 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                     <Copy className="h-4 w-4 mr-2" />
                                     {isCopyingCard ? "Copying..." : "Copy"}
                                 </Button>
-                                <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                                     size="sm"
                                     onClick={handleDeleteCard}
                                     disabled={isRemovingCard}

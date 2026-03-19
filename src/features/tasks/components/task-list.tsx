@@ -47,84 +47,84 @@ const TaskCardItem = ({ card, index }: TaskCardItemProps) => {
     return (
         <>
             <Draggable draggableId={card._id} index={index}>
-    {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-        <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            onClick={() => setIsDetailOpen(true)}
-            // เพิ่ม padding เล็กน้อยกันขอบการ์ดแหว่งตอนมีเงา
-            className="select-none py-0.5" 
-        >
-            <Card
-                className={cn(
-                    // 1. เปลี่ยน Cursor เป็นรูปมือจับ (Grab) ให้รู้ว่าลากได้
-                    "group cursor-grab active:cursor-grabbing bg-white border border-slate-200 transition-all duration-200",
-                    // 2. เอฟเฟกต์ตอนชี้เมาส์ (Hover) จะยกลอยขึ้นนิดนึง
-                    "hover:shadow-md hover:border-slate-300 hover:-translate-y-px",
-                    // 3. เอฟเฟกต์ตอนกำลังลาก (Dragging) มีการขยายขนาด (scale) และเอียงนิดๆ
-                    snapshot.isDragging 
-                        ? "shadow-xl rotate-2 scale-[1.02] ring-1 ring-[#337f37]/40 z-50" 
-                        : "shadow-sm"
-                )}
-            >
-                {/* เพิ่ม gap ภายในให้ดูโปร่ง ไม่อึดอัด */}
-                <CardContent className="p-3 flex flex-col gap-2.5">
-                    
-                    {/* Labels: ปรับให้เป็นแถบสีมินิมอล (สไตล์ Trello ยุคใหม่) ลดความรกของไอคอน */}
-                    {card.labels && card.labels.length > 0 && (
-                        <div className="flex gap-1.5 flex-wrap">
-                            {card.labels.map((label, i) => (
-                                <div
-                                    key={i}
-                                    className="h-1.5 w-8 rounded-full transition-all group-hover:opacity-80"
-                                    style={{ backgroundColor: label }}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Title: เพิ่ม line-clamp ป้องกันชื่อยาวเกินไปจนการ์ดพัง */}
-                    <h4 className="font-medium text-sm text-slate-700 leading-snug line-clamp-3">
-                        {card.title}
-                    </h4>
-
-                    {/* Meta info & Assignee */}
-                    <div className="flex items-end justify-between mt-1">
-                        <div className="flex items-center gap-3 text-slate-500">
-                            
-                            {/* Due date: ปรับให้เป็น Badge ดูนุ่มนวลขึ้น */}
-                            {card.dueDate && (
-                                <div className="flex items-center gap-1.5 text-[11px] font-medium bg-slate-100/80 px-2 py-1 rounded-md">
-                                    <Calendar className="h-3 w-3 text-slate-400" />
-                                    <span>{format(card.dueDate, "MMM d")}</span>
-                                </div>
+                {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                    <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        onClick={() => setIsDetailOpen(true)}
+                        // เพิ่ม padding เล็กน้อยกันขอบการ์ดแหว่งตอนมีเงา
+                        className="select-none py-0.5"
+                    >
+                        <Card
+                            className={cn(
+                                // 1. เปลี่ยน Cursor เป็นรูปมือจับ (Grab) ให้รู้ว่าลากได้
+                                "group cursor-grab active:cursor-grabbing bg-white border border-slate-200 transition-all duration-200",
+                                // 2. เอฟเฟกต์ตอนชี้เมาส์ (Hover) จะยกลอยขึ้นนิดนึง
+                                "hover:shadow-md hover:border-slate-300 hover:-translate-y-px",
+                                // 3. เอฟเฟกต์ตอนกำลังลาก (Dragging) มีการขยายขนาด (scale) และเอียงนิดๆ
+                                snapshot.isDragging
+                                    ? "shadow-xl rotate-2 scale-[1.02] ring-1 ring-[#337f37]/40 z-50"
+                                    : "shadow-sm"
                             )}
+                        >
+                            {/* เพิ่ม gap ภายในให้ดูโปร่ง ไม่อึดอัด */}
+                            <CardContent className="p-3 flex flex-col gap-2.5">
 
-                            {/* Attachments: เอาพื้นหลังออก ให้กลืนไปกับตัวการ์ด แต่ยังดูชัดเจน */}
-                            {card.attachments && card.attachments.length > 0 && (
-                                <div className="flex items-center gap-1 text-[11px] font-medium px-1">
-                                    <Paperclip className="h-3 w-3 text-slate-400" />
-                                    <span>{card.attachments.length}</span>
+                                {/* Labels: ปรับให้เป็นแถบสีมินิมอล (สไตล์ Trello ยุคใหม่) ลดความรกของไอคอน */}
+                                {card.labels && card.labels.length > 0 && (
+                                    <div className="flex gap-1.5 flex-wrap">
+                                        {card.labels.map((label, i) => (
+                                            <div
+                                                key={i}
+                                                className="h-1.5 w-8 rounded-full transition-all group-hover:opacity-80"
+                                                style={{ backgroundColor: label }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Title: เพิ่ม line-clamp ป้องกันชื่อยาวเกินไปจนการ์ดพัง */}
+                                <h4 className="font-medium text-sm text-slate-700 leading-snug line-clamp-3">
+                                    {card.title}
+                                </h4>
+
+                                {/* Meta info & Assignee */}
+                                <div className="flex items-end justify-between mt-1">
+                                    <div className="flex items-center gap-3 text-slate-500">
+
+                                        {/* Due date: ปรับให้เป็น Badge ดูนุ่มนวลขึ้น */}
+                                        {card.dueDate && (
+                                            <div className="flex items-center gap-1.5 text-[11px] font-medium bg-slate-100/80 px-2 py-1 rounded-md">
+                                                <Calendar className="h-3 w-3 text-slate-400" />
+                                                <span>{format(card.dueDate, "MMM d")}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Attachments: เอาพื้นหลังออก ให้กลืนไปกับตัวการ์ด แต่ยังดูชัดเจน */}
+                                        {card.attachments && card.attachments.length > 0 && (
+                                            <div className="flex items-center gap-1 text-[11px] font-medium px-1">
+                                                <Paperclip className="h-3 w-3 text-slate-400" />
+                                                <span>{card.attachments.length}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Assignee: เพิ่ม Gradient สวยๆ และลูกเล่นเด้งตอน Hover */}
+                                    {card.assignee && (
+                                        <Avatar className="h-6 w-6 ring-2 ring-white shadow-sm transition-transform duration-200 group-hover:scale-110">
+                                            <AvatarImage src={card.assignee.image} />
+                                            <AvatarFallback className="bg-linear-to-br from-[#337f37] to-[#2a6b2e] text-white text-[10px] font-medium">
+                                                {card.assignee.name?.charAt(0)?.toUpperCase() || "?"}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Assignee: เพิ่ม Gradient สวยๆ และลูกเล่นเด้งตอน Hover */}
-                        {card.assignee && (
-                            <Avatar className="h-6 w-6 ring-2 ring-white shadow-sm transition-transform duration-200 group-hover:scale-110">
-                                <AvatarImage src={card.assignee.image} />
-                                <AvatarFallback className="bg-linear-to-br from-[#337f37] to-[#2a6b2e] text-white text-[10px] font-medium">
-                                    {card.assignee.name?.charAt(0)?.toUpperCase() || "?"}
-                                </AvatarFallback>
-                            </Avatar>
-                        )}
+                            </CardContent>
+                        </Card>
                     </div>
-                </CardContent>
-            </Card>
-        </div>
-    )}
-</Draggable>
+                )}
+            </Draggable>
 
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-hide">
@@ -178,7 +178,7 @@ export const TaskList = ({ listId }: TaskListProps) => {
                         {...provided.droppableProps}
                         // 3. ใช้ flex-col และ gap-y-2 แทน mb-2 ที่การ์ด + ให้ Scroll ได้
                         className={cn(
-                            "flex-1 overflow-y-auto overflow-x-hidden min-h-[10px] px-2 pb-2 flex flex-col gap-y-2",
+                            "flex-1 overflow-y-auto overflow-x-hidden min-h-2.5 px-2 pb-2 flex flex-col gap-y-2",
                             "scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent", // ถ้าคุณมี tailwind-scrollbar plugin
                             snapshot.isDraggingOver ? "bg-black/5 rounded-lg" : ""
                         )}

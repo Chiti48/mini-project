@@ -46,7 +46,7 @@ const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
             <Toolbar />
             {/* เพิ่ม relative และ overflow-hidden เพื่อกักบริเวณเมนูสไลด์ */}
             <div className="flex h-[calc(100vh-40px)] relative overflow-hidden">
-                
+
                 {/* 1. Thin Sidebar หลัก (ต้องมี z-50 เพื่อให้อยู่เหนือ Backdrop และกดปุ่มปิดได้) */}
                 <div className="z-50 flex-none">
                     <Sidebar />
@@ -54,7 +54,7 @@ const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
 
                 {/* 2. Mobile Backdrop (จางๆ สีดำ) */}
                 {isMobile && isSidebarOpen && (
-                    <div 
+                    <div
                         className="absolute inset-0 bg-black/60 z-40 lg:hidden"
                         onClick={closeSidebar}
                     />
@@ -62,7 +62,7 @@ const WorkspaceIdLayout = ({ children }: WorkspaceIdLayoutProps) => {
 
                 {/* 3. Mobile WorkspaceSidebar (Drawer แบบสไลด์) */}
                 {isMobile && (
-                    <div 
+                    <div
                         className={cn(
                             "absolute left-[70px] top-0 bottom-0 z-40 w-64 bg-[#337f37] transition-transform duration-300 ease-in-out lg:hidden",
                             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
