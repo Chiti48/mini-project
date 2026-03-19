@@ -53,8 +53,24 @@ export const WorkspaceSidebar = () => {
             <div className="flex flex-col flex-1 overflow-y-auto pb-4">
                 
                 <div className="flex flex-col px-2 mt-3 gap-y-1">
-                    <SidebarItem label="Threads" icon={MessageSquareText} id="threads" onClick={closeSidebar} />
-                    <SidebarItem label="Drafts & Sent" icon={SendHorizonal} id="drafts" onClick={closeSidebar} />
+                    <SidebarItem 
+                        label="Threads" 
+                        icon={MessageSquareText} 
+                        id="threads" 
+                        onClick={() => {
+                            router.push('../page-developing');
+                            closeSidebar();
+                        }} 
+                    />
+                    <SidebarItem 
+                        label="Drafts & Sent" 
+                        icon={SendHorizonal} 
+                        id="drafts" 
+                        onClick={() => {
+                            router.push('../page-developing/page');
+                            closeSidebar();
+                        }} 
+                    />
                     <TaskBoardsLink label="Task Boards" icon={Layout} onClick={closeSidebar} />
                 </div>
 

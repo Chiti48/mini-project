@@ -2,7 +2,7 @@ import { UserButton } from "@/features/auth/components/user-button";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { SidebarButton } from "./sidebar-button";
 import { Activity, Home, MessagesSquare, MoreHorizontal } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { ActivityModal } from "@/features/activities/components/activity-modal";
@@ -11,6 +11,7 @@ import { useMobileSidebar } from "@/hooks/use-mobile-sidebar";
 
 export const Sidebar = () => {
     const pathname = usePathname();
+    const router = useRouter();
     const [isActivityOpen, setIsActivityOpen] = useState(false);
     const { isOpen, toggle } = useMobileSidebar();
 
@@ -21,7 +22,11 @@ export const Sidebar = () => {
             <aside className="w-17.5 h-full bg-[oklch(35.5%_0.07_142)] flex flex-col gap-y-4 items-center pt-2.25 pb-4">
                 <WorkspaceSwitcher />
                 <SidebarButton icon={Home} label="Home" isActive={pathname.includes("/workspace")} />
-                <SidebarButton icon={MessagesSquare} label="DM" />
+                <SidebarButton 
+                    icon={MessagesSquare} 
+                    label="DM" 
+                    onClick={() => router.push('/page-developing')} 
+                />
                 <SidebarButton 
                     icon={Activity} 
                     label="Activity" 

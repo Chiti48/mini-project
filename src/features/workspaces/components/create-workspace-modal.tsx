@@ -59,7 +59,9 @@ export const CreateWorkspaceModal = () => {
                         placeholder="Workspace name e.g. 'Work', 'Personal', 'Home'"
                     />
                     <div className="flex justify-end">
-                        <Button disabled={isPending}>
+                        <Button 
+                        className="bg-[#129a4b] hover:bg-[#0f8a6a]"
+                        disabled={isPending}>
                             Create
                         </Button>
                     </div>

@@ -8,7 +8,6 @@ import {
   CheckCircle, ArrowLeft, KanbanSquare, Layers, Sparkles
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 // ============================================
 // 1. 3D Card Flip - Workspace Management
