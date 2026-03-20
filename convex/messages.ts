@@ -205,9 +205,10 @@ export const getById = query({
         // Get attachment URLs
         const attachments = message.attachments
             ? await Promise.all(
-                message.attachments.map(async (storageId) => ({
-                    storageId,
-                    url: await ctx.storage.getUrl(storageId),
+                message.attachments.map(async (attachment) => ({
+                    id: attachment.id,
+                    name: attachment.name,
+                    url: await ctx.storage.getUrl(attachment.id),
                 }))
             )
             : undefined;
@@ -283,9 +284,10 @@ export const get = query({
                         // Get attachment URLs
                         const attachments = message.attachments
                             ? await Promise.all(
-                                message.attachments.map(async (storageId) => ({
-                                    storageId,
-                                    url: await ctx.storage.getUrl(storageId),
+                                message.attachments.map(async (attachment) => ({
+                                    id: attachment.id,
+                                    name: attachment.name,
+                                    url: await ctx.storage.getUrl(attachment.id),
                                 }))
                             )
                             : undefined;
@@ -346,7 +348,14 @@ export const create = mutation({
     args: {
         body: v.string(),
         image: v.optional(v.id("_storage")),
-        attachments: v.optional(v.array(v.id("_storage"))), // Support multiple file attachments
+        attachments: v.optional(
+            v.array(
+                v.object({
+                    id: v.id("_storage"),
+                    name: v.string(),
+                })
+            )
+        ), // Support multiple file attachments with names
         workspaceId: v.id("workspaces"),
         channelId: v.optional(v.id("channels")),
         conversationId: v.optional(v.id("conversations")),

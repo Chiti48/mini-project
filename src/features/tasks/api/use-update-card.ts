@@ -11,7 +11,7 @@ type RequestType = {
     assigneeId?: Id<"members"> | "__CLEAR__";
     dueDate?: number | "__CLEAR__";
     labels?: string[];
-    attachments?: Id<"_storage">[];
+    attachments?: { id: Id<"_storage">; name: string }[];
 };
 
 type ResponseType = Id<"taskCards"> | null;

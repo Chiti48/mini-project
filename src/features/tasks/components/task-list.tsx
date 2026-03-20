@@ -36,7 +36,7 @@ interface TaskCardItemProps {
         } | null;
         dueDate?: number;
         labels?: string[];
-        attachments?: Id<"_storage">[];
+        attachments?: { id: Id<"_storage">; name: string; url: string | null }[];
     };
     index: number;
 }

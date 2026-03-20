@@ -33,7 +33,7 @@ interface MessageProps {
     >;
     body: Doc<"messages">["body"];
     image: string | null | undefined;
-    attachments?: Array<{ storageId: Id<"_storage">; url: string | null }> | undefined;
+    attachments?: Array<{ id: Id<"_storage">; name: string; url: string | null }> | undefined;
     createdAt: Doc<"messages">["_creationTime"];
     updatedAt: Doc<"messages">["updatedAt"];
     isEditing: boolean;
@@ -51,15 +51,15 @@ const formatFullTime = (date: Date) => {
 };
 
 // Attachments component to display file attachments
-const Attachments = ({ attachments }: { attachments: Array<{ storageId: Id<"_storage">; url: string | null }> | undefined }) => {
+const Attachments = ({ attachments }: { attachments: Array<{ id: Id<"_storage">; name: string; url: string | null }> | undefined }) => {
     if (!attachments || attachments.length === 0) return null;
 
     return (
         <div className="flex flex-col gap-1 mt-1">
-            {attachments.map((attachment, index) => (
-                <div key={attachment.storageId} className="flex items-center gap-2 p-2 bg-slate-100 rounded-md max-w-fit">
+            {attachments.map((attachment) => (
+                <div key={attachment.id} className="flex items-center gap-2 p-2 bg-slate-100 rounded-md max-w-fit">
                     <Paperclip className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Attachment {index + 1}</span>
+                    <span className="text-sm text-muted-foreground">{attachment.name}</span>
                     {attachment.url && (
                         <a
                             href={attachment.url}

@@ -207,10 +207,10 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                 throw new Error("No storageId received from upload");
             }
 
-            const currentAttachments = card?.attachments?.map(a => a.storageId) || [];
+            const currentAttachments = card?.attachments || [];
             await updateCard({
                 cardId,
-                attachments: [...currentAttachments, storageId],
+                attachments: [...currentAttachments, { id: storageId, name: file.name }],
             }, {
                 onSuccess: () => {
                     toast.success("File uploaded successfully");
@@ -229,11 +229,11 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
         }
     };
 
-    const handleRemoveAttachment = async (storageId: Id<"_storage">) => {
-        const currentAttachments = card?.attachments?.map(a => a.storageId) || [];
+    const handleRemoveAttachment = async (attachmentId: Id<"_storage">) => {
+        const currentAttachments = card?.attachments || [];
         await updateCard({
             cardId,
-            attachments: currentAttachments.filter(id => id !== storageId),
+            attachments: currentAttachments.filter(a => a.id !== attachmentId),
         }, {
             onSuccess: () => toast.success("Attachment removed"),
             onError: () => toast.error("Failed to remove attachment"),
@@ -397,14 +397,13 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     {card.attachments?.map((attachment) => {
-                                        const fileId = attachment.storageId.toString();
-                                        const fileName = `File_${fileId.slice(0, 8)}...${fileId.slice(-4)}`;
-                                        const fileExt = "FILE";
-                                        const isImage = false;
+                                        const fileName = attachment.name;
+                                        const fileExt = fileName.split('.').pop()?.toUpperCase() || 'FILE';
+                                        const isImage = ['JPG', 'JPEG', 'PNG', 'GIF', 'WEBP'].includes(fileExt);
 
                                         return (
                                             <div
-                                                key={attachment.storageId}
+                                                key={attachment.id}
                                                 className="group relative flex items-center gap-2 px-2.5 py-2 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow hover:border-violet-200 transition-all duration-200"
                                             >
                                                 <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${isImage
@@ -447,7 +446,7 @@ export const TaskCardDetail = ({ cardId, onClose }: TaskCardDetailProps) => {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                                                        onClick={() => handleRemoveAttachment(attachment.storageId)}
+                                                        onClick={() => handleRemoveAttachment(attachment.id)}
                                                         disabled={isUpdatingCard}
                                                         title="Remove"
                                                     >

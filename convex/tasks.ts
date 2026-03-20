@@ -256,7 +256,14 @@ export const createCard = mutation({
         assigneeId: v.optional(v.id("members")),
         dueDate: v.optional(v.number()),
         labels: v.optional(v.array(v.string())),
-        attachments: v.optional(v.array(v.id("_storage"))),
+        attachments: v.optional(
+            v.array(
+                v.object({
+                    id: v.id("_storage"),
+                    name: v.string(),
+                })
+            )
+        ),
     },
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
@@ -330,7 +337,7 @@ export const getCards = query({
             .order("asc")
             .collect();
 
-        // Populate assignee info
+        // Populate assignee info and attachment URLs
         const populatedCards = [];
         for (const card of cards) {
             let assignee = null;
@@ -341,9 +348,21 @@ export const getCards = query({
                 }
             }
 
+            // Get attachment URLs
+            const attachments = card.attachments
+                ? await Promise.all(
+                    card.attachments.map(async (attachment) => ({
+                        id: attachment.id,
+                        name: attachment.name,
+                        url: await ctx.storage.getUrl(attachment.id),
+                    }))
+                )
+                : undefined;
+
             populatedCards.push({
                 ...card,
                 assignee,
+                attachments,
             });
         }
 
@@ -380,9 +399,10 @@ export const getCardById = query({
         // Get attachment URLs
         const attachments = card.attachments
             ? await Promise.all(
-                card.attachments.map(async (storageId) => ({
-                    storageId,
-                    url: await ctx.storage.getUrl(storageId),
+                card.attachments.map(async (attachment) => ({
+                    id: attachment.id,
+                    name: attachment.name,
+                    url: await ctx.storage.getUrl(attachment.id),
                 }))
             )
             : undefined;
@@ -405,7 +425,14 @@ export const updateCard = mutation({
         assigneeId: v.optional(v.union(v.id("members"), v.literal("__CLEAR__"))),
         dueDate: v.optional(v.union(v.number(), v.literal("__CLEAR__"))),
         labels: v.optional(v.array(v.string())),
-        attachments: v.optional(v.array(v.id("_storage"))),
+        attachments: v.optional(
+            v.array(
+                v.object({
+                    id: v.id("_storage"),
+                    name: v.string(),
+                })
+            )
+        ),
     },
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);

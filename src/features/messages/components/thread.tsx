@@ -29,7 +29,7 @@ type CreateMessageValues = {
     parentMessageId: Id<"messages">;
     body: string;
     image?: Id<"_storage"> | undefined;
-    attachments?: Id<"_storage">[] | undefined;
+    attachments?: { id: Id<"_storage">; name: string }[] | undefined;
 };
 
 const formatDateLabel = (dateStr: string) => {
@@ -128,7 +128,7 @@ export const Thread = ({ messageId, onClose }: ThreadProps) => {
 
                 const { storageId } = await result.json();
 
-                values.attachments = [storageId];
+                values.attachments = [{ id: storageId, name: file.name }];
             }
 
             await createMessage(values, { throwError: true });

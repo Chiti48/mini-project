@@ -20,7 +20,7 @@ type CreateMessageValues = {
     workspaceId: Id<"workspaces">;
     body: string;
     image?: Id<"_storage"> | undefined;
-    attachments?: Id<"_storage">[] | undefined;
+    attachments?: { id: Id<"_storage">; name: string }[] | undefined;
 };
 
 export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
@@ -98,7 +98,7 @@ export const ChatInput = ({ placeholder, conversationId }: ChatInputProps) => {
 
                 const { storageId } = await result.json();
 
-                values.attachments = [storageId];
+                values.attachments = [{ id: storageId, name: file.name }];
             }
 
             await createMessage(values, { throwError: true });

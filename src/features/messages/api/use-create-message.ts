@@ -8,7 +8,7 @@ type RequestType = {
     body: string,
     workspaceId: Id<"workspaces">,
     image?: Id<"_storage">,
-    attachments?: Id<"_storage">[], // Support multiple file attachments
+    attachments?: { id: Id<"_storage">; name: string }[], // Support multiple file attachments with names
     channelId?: Id<"channels">,
     parentMessageId?: Id<"messages">,
     conversationId?: Id<"conversations">,
