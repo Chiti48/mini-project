@@ -65,7 +65,7 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                         value={email}
                         onChange={(e) => {
                             setEmail(e.target.value);
-                            setError(""); 
+                            setError("");
                         }}
                         placeholder="Email"
                         type="email"
@@ -76,7 +76,7 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                         value={password}
                         onChange={(e) => {
                             setPassword(e.target.value);
-                            setError(""); 
+                            setError("");
                         }}
                         placeholder="Password"
                         type="password"
@@ -85,6 +85,16 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
                     <Button type="submit" className="w-full" size="lg" disabled={pending}>
                         Continue
                     </Button>
+                    <div className="text-center mt-2">
+                        <button
+                            type="button"
+                            onClick={() => setState("resetPassword")}
+                            className="text-sm text-[#337f37] hover:text-[#b50000] transition-colors"
+                            disabled={pending}
+                        >
+                            Forgot your password?
+                        </button>
+                    </div>
                 </form>
                 <Separator />
                 <div className="flex flex-col gap-y-2.5">

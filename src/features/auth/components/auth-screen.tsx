@@ -6,6 +6,7 @@ import { SignInFlow } from "../types";
 
 import { SignInCard } from "./sign-in-card";
 import { SignUpCard } from "./sign-up-card";
+import { ResetPasswordCard } from "./reset-password-card";
 
 export const AuthScreen = () => {
     const [state, setState] = useState<SignInFlow>("signIn");
@@ -31,6 +32,8 @@ export const AuthScreen = () => {
             <div className="w-full max-w-md md:w-105 shadow-2xl rounded-xl transition-all duration-300">
                 {state === "signIn" ? (
                     <SignInCard setState={setState} />
+                ) : state === "resetPassword" ? (
+                    <ResetPasswordCard setState={setState} />
                 ) : (
                     <SignUpCard setState={setState} />
                 )}
