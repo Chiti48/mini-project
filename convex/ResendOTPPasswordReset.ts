@@ -169,7 +169,7 @@ export const ResendOTPPasswordReset = Email({
     `;
 
     const { error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "CT Support <security@ctworkspace.online>",
       to: [email],
       subject: `Reset your password in CT Workspace`,
       html: emailHtml,
