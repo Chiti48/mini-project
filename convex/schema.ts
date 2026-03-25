@@ -6,6 +6,70 @@ const schema = defineSchema({
     ...authTables,
     
     // ==========================================
+    // Global Friend System Tables (Workspace-agnostic)
+    // ==========================================
+    friendRequests: defineTable({
+        senderId: v.id("users"),
+        receiverId: v.id("users"),
+        status: v.union(
+            v.literal("pending"),
+            v.literal("accepted"),
+            v.literal("rejected")
+        ),
+        createdAt: v.number(),
+        updatedAt: v.optional(v.number()),
+    })
+        .index("by_sender_id", ["senderId"])
+        .index("by_receiver_id", ["receiverId"])
+        .index("by_sender_receiver", ["senderId", "receiverId"])
+        .index("by_status", ["status"]),
+    
+    // Global 1-on-1 conversations (not tied to workspaces)
+    directConversations: defineTable({
+        userOneId: v.id("users"),
+        userTwoId: v.id("users"),
+        createdAt: v.number(),
+        lastMessageAt: v.optional(v.number()),
+    })
+        .index("by_user_one_id", ["userOneId"])
+        .index("by_user_two_id", ["userTwoId"])
+        .index("by_user_one_user_two", ["userOneId", "userTwoId"]),
+        
+    // Global messages for direct conversations
+    directMessages: defineTable({
+        body: v.string(),
+        image: v.optional(v.id("_storage")),
+        attachments: v.optional(
+            v.array(
+                v.object({
+                    id: v.id("_storage"),
+                    name: v.string(),
+                })
+            )
+        ),
+        senderId: v.id("users"),
+        receiverId: v.id("users"),
+        conversationId: v.id("directConversations"),
+        updatedAt: v.optional(v.number()),
+        createdAt: v.number(),
+    })
+        .index("by_conversation_id", ["conversationId"])
+        .index("by_sender_id", ["senderId"])
+        .index("by_receiver_id", ["receiverId"])
+        .index("by_conversation_created", ["conversationId", "createdAt"]),
+        
+    // Read receipts for direct messages
+    directReadReceipts: defineTable({
+        userId: v.id("users"),
+        conversationId: v.id("directConversations"),
+        lastReadAt: v.number(),
+        lastReadMessageId: v.optional(v.id("directMessages")),
+    })
+        .index("by_user_id", ["userId"])
+        .index("by_conversation_id", ["conversationId"])
+        .index("by_user_conversation", ["userId", "conversationId"]),
+
+    // ==========================================
     // Core Workspace Tables
     // ==========================================
     workspaces: defineTable({

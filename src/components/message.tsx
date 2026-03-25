@@ -219,8 +219,8 @@ export const Message = ({
         <>
             <ConfirmDialog />
             <div 
-                tabIndex={0} // ทำให้กล่องข้อความสามารถโฟกัสได้เมื่อถูกแตะ
-                onClick={() => {}} // ทริคเล็กๆ เพื่อบังคับให้ iOS Safari รองรับการแตะ
+                tabIndex={0} 
+                onClick={() => {}} 
                 className={cn(
                     "flex flex-col gap-2 p-1.5 px-5 hover:bg-gray-100/60 focus-within:bg-gray-100/60 outline-none group relative", // เพิ่ม focus-within
                     isEditing && "bg-[#f2c74433] hover:bg-[#f2c74433] focus-within:bg-[#f2c74433]",

@@ -12,6 +12,8 @@ import type * as ResendOTPPasswordReset from "../ResendOTPPasswordReset.js";
 import type * as auth from "../auth.js";
 import type * as channels from "../channels.js";
 import type * as conversation from "../conversation.js";
+import type * as directConversations from "../directConversations.js";
+import type * as friends from "../friends.js";
 import type * as http from "../http.js";
 import type * as members from "../members.js";
 import type * as messages from "../messages.js";
@@ -33,6 +35,8 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   channels: typeof channels;
   conversation: typeof conversation;
+  directConversations: typeof directConversations;
+  friends: typeof friends;
   http: typeof http;
   members: typeof members;
   messages: typeof messages;
