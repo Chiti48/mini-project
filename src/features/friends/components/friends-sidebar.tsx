@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetFriends, useSearchUsers, useGetPendingRequests } from "../hooks/use-get-friends";
-import { useSendFriendRequest, useAcceptFriendRequest, useRejectFriendRequest } from "../hooks/use-friend-actions";
+import { useSendFriendRequest, useAcceptFriendRequest, useRejectFriendRequest, useRemoveFriend } from "../hooks/use-friend-actions";
 import { useCreateDirectConversation } from "../../direct-messages/hooks/use-conversation-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,8 @@ import {
     X, 
     Search,
     User,
-    Clock
+    Clock,
+    Loader
 } from "lucide-react";
 import { toast } from "sonner";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -42,47 +43,89 @@ interface FriendsSidebarProps {
 export const FriendsSidebar = ({ workspaceId }: FriendsSidebarProps) => {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
     const [isAddFriendOpen, setIsAddFriendOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
 
+    // Track which ID is in-flight per action type
+    const [pendingSendId, setPendingSendId] = useState<string | null>(null);
+    const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
+    const [pendingRejectId, setPendingRejectId] = useState<string | null>(null);
+    const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+    const [pendingMsgId, setPendingMsgId] = useState<string | null>(null);
+
+    // Debounce search — fire query only 300ms after user stops typing
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const { data: friends, isLoading: friendsLoading } = useGetFriends();
     const { data: pendingRequests, isLoading: requestsLoading } = useGetPendingRequests();
-    const { data: searchResults, isLoading: searchLoading } = useSearchUsers(searchQuery);
+    const { data: searchResults, isLoading: searchLoading } = useSearchUsers(debouncedQuery);
 
     const { sendRequest } = useSendFriendRequest();
     const { acceptRequest } = useAcceptFriendRequest();
     const { rejectRequest } = useRejectFriendRequest();
+    const { removeFriend } = useRemoveFriend();
     const { createConversation } = useCreateDirectConversation();
 
     const handleSendRequest = async (receiverId: Id<"users">) => {
+        if (pendingSendId) return;
+        setPendingSendId(receiverId);
         try {
             await sendRequest(receiverId);
             toast.success("Friend request sent!");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to send request");
+        } finally {
+            setPendingSendId(null);
         }
     };
 
     const handleAcceptRequest = async (requestId: Id<"friendRequests">) => {
+        if (pendingAcceptId) return;
+        setPendingAcceptId(requestId);
         try {
             await acceptRequest(requestId);
             toast.success("Friend request accepted!");
         } catch {
             toast.error("Failed to accept request");
+        } finally {
+            setPendingAcceptId(null);
         }
     };
 
     const handleRejectRequest = async (requestId: Id<"friendRequests">) => {
+        if (pendingRejectId) return;
+        setPendingRejectId(requestId);
         try {
             await rejectRequest(requestId);
             toast.success("Friend request rejected");
         } catch {
             toast.error("Failed to reject request");
+        } finally {
+            setPendingRejectId(null);
+        }
+    };
+
+    const handleRemoveFriend = async (friendId: Id<"users">) => {
+        if (pendingRemoveId) return;
+        setPendingRemoveId(friendId);
+        try {
+            await removeFriend(friendId);
+            toast.success("Friend removed");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Failed to remove friend");
+        } finally {
+            setPendingRemoveId(null);
         }
     };
 
     const handleStartConversation = async (e: React.MouseEvent, friendId: Id<"users">) => {
         e.stopPropagation();
+        if (pendingMsgId) return;
+        setPendingMsgId(friendId);
         try {
             const conversationId = await createConversation(friendId);
             if (workspaceId) {
@@ -166,8 +209,13 @@ export const FriendsSidebar = ({ workspaceId }: FriendsSidebarProps) => {
                                                     <Button
                                                         size="sm"
                                                         onClick={() => handleSendRequest(user._id)}
+                                                        disabled={pendingSendId === user._id}
                                                     >
-                                                        <UserPlus className="w-4 h-4 mr-1" />
+                                                        {pendingSendId === user._id ? (
+                                                            <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                                        ) : (
+                                                            <UserPlus className="w-4 h-4 mr-1" />
+                                                        )}
                                                         Add
                                                     </Button>
                                                 )}
@@ -247,14 +295,19 @@ export const FriendsSidebar = ({ workspaceId }: FriendsSidebarProps) => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={(e) => { e.stopPropagation(); handleStartConversation(e, user._id); }}
-                                                className="text-white hover:bg-white/20"
-                                            >
-                                                <MessageCircle className="w-4 h-4" />
-                                            </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    disabled={pendingMsgId === user._id}
+                                                    onClick={(e) => { e.stopPropagation(); handleStartConversation(e, user._id); }}
+                                                    className="text-white hover:bg-white/20"
+                                                >
+                                                    {pendingMsgId === user._id ? (
+                                                        <Loader className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <MessageCircle className="w-4 h-4" />
+                                                    )}
+                                                </Button>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
@@ -264,9 +317,10 @@ export const FriendsSidebar = ({ workspaceId }: FriendsSidebarProps) => {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem 
                                                         className="text-red-600"
-                                                        onClick={() => {/* Add remove friend logic */}}
+                                                        disabled={pendingRemoveId === user._id}
+                                                        onClick={() => handleRemoveFriend(user._id)}
                                                     >
-                                                        Remove Friend
+                                                        {pendingRemoveId === user._id ? "Removing..." : "Remove Friend"}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -307,20 +361,30 @@ export const FriendsSidebar = ({ workspaceId }: FriendsSidebarProps) => {
                                     <div className="flex gap-2">
                                         <Button
                                             size="sm"
-                                            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                            disabled={pendingAcceptId === request._id || pendingRejectId === request._id}
+                                            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white disabled:bg-emerald-500/50"
                                             onClick={() => handleAcceptRequest(request._id)}
                                         >
-                                            <Check className="w-4 h-4 mr-1" />
-                                            Accept
+                                            {pendingAcceptId === request._id ? (
+                                                <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                            ) : (
+                                                <Check className="w-4 h-4 mr-1" />
+                                            )}
+                                            {pendingAcceptId === request._id ? "Accepting..." : "Accept"}
                                         </Button>
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 text-white border-red-800 hover:bg-red-500/50 bg-red-800"
+                                            disabled={pendingAcceptId === request._id || pendingRejectId === request._id}
+                                            className="flex-1 text-white border-red-800 hover:bg-red-500/50 bg-red-800 disabled:bg-red-800/50"
                                             onClick={() => handleRejectRequest(request._id)}
                                         >
-                                            <X className="w-4 h-4 mr-1" />
-                                            Decline
+                                            {pendingRejectId === request._id ? (
+                                                <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                            ) : (
+                                                <X className="w-4 h-4 mr-1" />
+                                            )}
+                                            {pendingRejectId === request._id ? "Declining..." : "Decline"}
                                         </Button>
                                     </div>
                                 </div>

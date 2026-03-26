@@ -77,51 +77,57 @@ export const createOrGet = mutation({
  * Get all direct conversations for current user
  */
 export const getConversations = query({
-    args: {},
-    handler: async (ctx) => {
+    args: {
+        limit: v.optional(v.number()),    // items per page, default 20
+        cursor: v.optional(v.number()),   // offset (index to start from)
+    },
+    handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
 
         if (!userId) {
-            return [];
+            return { conversations: [], hasMore: false };
         }
 
-        // Get conversations where user is either userOne or userTwo
-        const conversationsAsUserOne = await ctx.db
-            .query("directConversations")
-            .withIndex("by_user_one_id", (q) => q.eq("userOneId", userId))
-            .collect();
+        const limit = args.limit ?? 20;
+        const cursor = args.cursor ?? 0;
 
-        const conversationsAsUserTwo = await ctx.db
-            .query("directConversations")
-            .withIndex("by_user_two_id", (q) => q.eq("userTwoId", userId))
-            .collect();
+        // Fetch both sides of conversations in parallel
+        const [conversationsAsUserOne, conversationsAsUserTwo] = await Promise.all([
+            ctx.db
+                .query("directConversations")
+                .withIndex("by_user_one_id", (q) => q.eq("userOneId", userId))
+                .collect(),
+            ctx.db
+                .query("directConversations")
+                .withIndex("by_user_two_id", (q) => q.eq("userTwoId", userId))
+                .collect(),
+        ]);
 
         const allConversations = [...conversationsAsUserOne, ...conversationsAsUserTwo];
 
-        // Get other user details and last message for each conversation
+        // Enrich all conversations with metadata in parallel (needed for sorting)
         const conversationsWithDetails = await Promise.all(
             allConversations.map(async (conv) => {
                 const otherUserId = conv.userOneId === userId ? conv.userTwoId : conv.userOneId;
-                const otherUser = await ctx.db.get(otherUserId);
 
-                // Get last message
-                const lastMessages = await ctx.db
-                    .query("directMessages")
-                    .withIndex("by_conversation_created", (q) =>
-                        q.eq("conversationId", conv._id)
-                    )
-                    .order("desc")
-                    .take(1);
+                const [otherUser, lastMessages, readReceipt] = await Promise.all([
+                    ctx.db.get(otherUserId),
+                    ctx.db
+                        .query("directMessages")
+                        .withIndex("by_conversation_created", (q) =>
+                            q.eq("conversationId", conv._id)
+                        )
+                        .order("desc")
+                        .take(1),
+                    ctx.db
+                        .query("directReadReceipts")
+                        .withIndex("by_user_conversation", (q) =>
+                            q.eq("userId", userId).eq("conversationId", conv._id)
+                        )
+                        .unique(),
+                ]);
 
                 const lastMessage = lastMessages[0] || null;
-
-                // Get unread count
-                const readReceipt = await ctx.db
-                    .query("directReadReceipts")
-                    .withIndex("by_user_conversation", (q) =>
-                        q.eq("userId", userId).eq("conversationId", conv._id)
-                    )
-                    .unique();
 
                 const unreadCount = await ctx.db
                     .query("directMessages")
@@ -144,12 +150,17 @@ export const getConversations = query({
             })
         );
 
-        // Sort by last message time (newest first)
-        return conversationsWithDetails.sort((a, b) => {
+        // Sort by most recent message (newest first), then paginate
+        const sorted = conversationsWithDetails.sort((a, b) => {
             const timeA = a.lastMessage?.createdAt || a.createdAt;
             const timeB = b.lastMessage?.createdAt || b.createdAt;
             return timeB - timeA;
         });
+
+        const page = sorted.slice(cursor, cursor + limit);
+        const hasMore = cursor + limit < sorted.length;
+
+        return { conversations: page, hasMore, total: sorted.length };
     },
 });
 
@@ -222,12 +233,26 @@ export const getMessages = query({
             .order("desc")
             .paginate(args.paginationOpts);
 
-        // Populate sender info
+        // Populate sender info and resolve storage URLs — all in parallel
         const messagesWithSender = await Promise.all(
             messages.page.map(async (msg) => {
-                const sender = await ctx.db.get(msg.senderId);
+                const [sender, imageUrl, resolvedAttachments] = await Promise.all([
+                    ctx.db.get(msg.senderId),
+                    msg.image ? ctx.storage.getUrl(msg.image) : Promise.resolve(null),
+                    msg.attachments
+                        ? Promise.all(
+                              msg.attachments.map(async (att) => ({
+                                  id: att.id,
+                                  name: att.name,
+                                  url: await ctx.storage.getUrl(att.id),
+                              }))
+                          )
+                        : Promise.resolve(undefined),
+                ]);
                 return {
                     ...msg,
+                    image: imageUrl,
+                    attachments: resolvedAttachments,
                     sender,
                 };
             })
@@ -248,6 +273,9 @@ export const sendMessage = mutation({
         conversationId: v.id("directConversations"),
         body: v.string(),
         image: v.optional(v.id("_storage")),
+        attachments: v.optional(
+            v.array(v.object({ id: v.id("_storage"), name: v.string() }))
+        ),
     },
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
@@ -271,6 +299,7 @@ export const sendMessage = mutation({
         const messageId = await ctx.db.insert("directMessages", {
             body: args.body,
             image: args.image,
+            attachments: args.attachments,
             senderId: userId,
             receiverId,
             conversationId: args.conversationId,

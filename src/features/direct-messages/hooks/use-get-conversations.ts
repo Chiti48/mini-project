@@ -1,15 +1,45 @@
-import { useQuery } from "convex/react";
+import { useQuery, usePaginatedQuery } from "convex/react";
+import { useState, useEffect } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { usePaginatedQuery } from "convex/react";
 
-// Hook to get all direct conversations
+const PAGE_SIZE = 20;
+
+// Hook to get paginated direct conversations
 export const useGetDirectConversations = () => {
-    const data = useQuery(api.directConversations.getConversations);
-    
+    const [cursor, setCursor] = useState(0);
+    const [allConversations, setAllConversations] = useState<NonNullable<ReturnType<typeof useQuery<typeof api.directConversations.getConversations>>>["conversations"]>([]);
+
+    const data = useQuery(api.directConversations.getConversations, {
+        limit: PAGE_SIZE,
+        cursor,
+    });
+
+    // Accumulate pages as user loads more
+    useEffect(() => {
+        if (data?.conversations) {
+            if (cursor === 0) {
+                // First page — reset list (e.g. after new message reorders)
+                setAllConversations(data.conversations);
+            } else {
+                // Subsequent pages — append
+                setAllConversations((prev) => [...prev, ...data.conversations]);
+            }
+        }
+    }, [data, cursor]);
+
+    const loadMore = () => {
+        if (data?.hasMore) {
+            setCursor((prev) => prev + PAGE_SIZE);
+        }
+    };
+
     return {
-        data,
+        conversations: allConversations,
         isLoading: data === undefined,
+        hasMore: data?.hasMore ?? false,
+        total: data?.total ?? 0,
+        loadMore,
     };
 };
 

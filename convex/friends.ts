@@ -396,25 +396,25 @@ export const searchUsers = query({
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
 
-        if (!userId || !args.query.trim()) {
+        // Require at least 2 characters to avoid scanning entire users table
+        if (!userId || args.query.trim().length < 2) {
             return [];
         }
 
-        // Get all users and filter (simple implementation)
-        // In production, you might want to use a search index
+        // Get all users and filter (client-side filter since no search index)
         const users = await ctx.db.query("users").collect();
 
         const searchLower = args.query.toLowerCase();
         const filteredUsers = users
-            .filter((u) => u._id !== userId) // Exclude current user
+            .filter((u) => u._id !== userId)
             .filter((u) => {
                 const emailMatch = u.email?.toLowerCase().includes(searchLower);
                 const nameMatch = u.name?.toLowerCase().includes(searchLower);
                 return emailMatch || nameMatch;
             })
-            .slice(0, 10); // Limit results
+            .slice(0, 10);
 
-        // Get friendship status for each user
+        // Get friendship status for each result in parallel
         const usersWithStatus = await Promise.all(
             filteredUsers.map(async (user) => {
                 const status = await ctx.db

@@ -20,9 +20,10 @@ export const useSendDirectMessage = () => {
     const sendMessage = async (
         conversationId: Id<"directConversations">,
         body: string,
-        image?: Id<"_storage">
+        image?: Id<"_storage">,
+        attachments?: { id: Id<"_storage">; name: string }[]
     ) => {
-        return await mutate({ conversationId, body, image });
+        return await mutate({ conversationId, body, image, attachments });
     };
     
     return { sendMessage };
